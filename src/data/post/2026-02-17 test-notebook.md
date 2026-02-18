@@ -3,7 +3,10 @@ publishDate: 2026-02-17
 title: 'Test Jupyter Notebook Integration'
 excerpt: 'A Jupyter notebook demonstration for the blog'
 topic: 'software'
-tags: ['python', 'jupyter', 'data-science']
+tags:
+    - python
+    - jupyter
+    - data-science
 draft: false
 accessLevel: 'public'
 ---

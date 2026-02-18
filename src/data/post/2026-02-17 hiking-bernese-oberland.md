@@ -3,7 +3,12 @@ publishDate: 2026-02-15
 title: 'Weekend Adventure: Hiking the Bernese Oberland'
 excerpt: 'A beautiful weekend exploring the Swiss Alps, from Lauterbrunnen to Grindelwald with stunning mountain views'
 topic: 'blog'
-tags: ['travel', 'hiking', 'switzerland', 'mountains', 'adventure']
+tags:
+    - travel
+    - hiking
+    - switzerland
+    - mountains
+    - adventure
 draft: false
 accessLevel: 'family'
 ---

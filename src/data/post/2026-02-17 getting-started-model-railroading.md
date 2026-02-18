@@ -3,7 +3,10 @@ publishDate: 2026-02-17
 title: 'Getting Started with Model Railroading'
 excerpt: 'An introduction to the fascinating hobby of model railroading, covering scales, layout planning, and essential equipment'
 topic: 'modelrailroad'
-tags: ['beginner', 'planning', 'equipment', 'N-scale']
+tags:
+    - railroad
+    - n-scale
+    -planning
 draft: false
 accessLevel: 'public'
 ---
