@@ -129,8 +129,13 @@ fi
 
 echo -e "${GREEN}${BOLD}✓ All checks passed!${RESET}\n"
 
-# ── Push ──────────────────────────────────────────────────────────────────────
-info "Pushing to GitHub..."
-git push
-echo -e "\n${GREEN}${BOLD}✓ Pushed. Cloudflare Pages will deploy shortly.${RESET}"
+# ── Sync Code to GitHub ───────────────────────────────────────────────────────
+info "Pushing code to GitHub..."
+git push || warn "Git push failed, but proceeding to deploy..."
+
+# ── Deploy to Cloudflare ──────────────────────────────────────────────────────
+info "Deploying to Cloudflare Pages (Direct Upload)..."
+npx wrangler pages deploy dist --project-name blog-boser-guyon
+
+echo -e "\n${GREEN}${BOLD}✓ Deployed!${RESET}"
 echo -e "  ${CYAN}https://blog-boser-guyon.pages.dev${RESET}\n"

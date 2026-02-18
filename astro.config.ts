@@ -84,6 +84,7 @@ export default defineConfig({
 
   vite: {
     resolve: {
+      preserveSymlinks: true,
       alias: {
         '~': path.resolve(__dirname, './src'),
       },

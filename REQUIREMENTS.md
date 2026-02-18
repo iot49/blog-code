@@ -69,3 +69,20 @@ But it's broken! Architect a robust solution that still supports:
 3. Is compatible view preview, npm run dev.
 
 If there are multiple solutions, explain their differences and make a recommendation.
+
+## Split folder repo
+
+Split this folder and repo into two (sub-folders): blog/code and blog/content.
+
+- blog/code: the astro code (public github repo blog-code)
+- blog/content: the contents of the data/ folder (**private** github repo blog-content)
+
+Some pages should that are not currently in data but should be there: 
+
+- about.astro
+- config.yaml
+- everything that is site specific, e.g. navigation, pages that contain names, emails, etc.
+- others?
+
+Analyze the site and devise a plan to split the repo into two: blog/code and blog/content.
+Also delete unused pages, e.g. pricing.astro.
