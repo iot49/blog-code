@@ -119,6 +119,7 @@ jobs:
 ```
 
 Add secrets to your GitHub repository:
+
 - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token
 - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
 
@@ -147,17 +148,19 @@ Set environment variables for your Pages project:
 # For production
 wrangler pages secret put VARIABLE_NAME --project-name=blog-boser-guyon
 
-# For preview environments  
+# For preview environments
 wrangler pages secret put VARIABLE_NAME --env=preview --project-name=blog-boser-guyon
 ```
 
 ## Preview Deployments
 
 Preview deployments are automatically created for:
+
 - Pull requests
 - Non-main branches
 
 Access them via:
+
 ```
 https://<commit-hash>.blog-boser-guyon.pages.dev
 ```
@@ -194,6 +197,7 @@ wrangler pages deployment get <deployment-id> --project-name=blog-boser-guyon
 ### Build Failures
 
 Check build logs:
+
 ```bash
 wrangler pages deployment tail --project-name=blog-boser-guyon
 ```
@@ -201,6 +205,7 @@ wrangler pages deployment tail --project-name=blog-boser-guyon
 ### Clear Cache
 
 Purge Cloudflare cache:
+
 ```bash
 wrangler pages deployment tail --project-name=blog-boser-guyon
 ```
@@ -208,6 +213,7 @@ wrangler pages deployment tail --project-name=blog-boser-guyon
 ### DNS Issues
 
 Verify DNS propagation:
+
 ```bash
 dig blog.boser-guyon.org
 nslookup blog.boser-guyon.org

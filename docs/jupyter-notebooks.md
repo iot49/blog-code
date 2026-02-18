@@ -36,6 +36,7 @@ python3 scripts/convert-notebook.py notebooks/your-notebook.ipynb [output-name]
 ```
 
 This will:
+
 - Convert the notebook to Markdown
 - Add proper frontmatter (title, date, tags, topic, accessLevel)
 - Save to `src/data/post/your-notebook.md`
@@ -44,6 +45,7 @@ This will:
 ### 3. Edit frontmatter (optional)
 
 Open `src/data/post/your-notebook.md` and customize:
+
 - `title`: Post title
 - `excerpt`: Brief description
 - `topic`: `'blog'`, `'modelrailroad'`, or `'software'`

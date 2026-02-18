@@ -5,6 +5,7 @@ Last Updated: 2026-02-17
 ## ✅ Completed Tasks
 
 ### 1. Jupyter Notebook Support ✅
+
 - **Status**: Fully implemented and tested
 - **Implementation**:
   - Created Python conversion script (`scripts/convert-notebook.py`)
@@ -16,6 +17,7 @@ Last Updated: 2026-02-17
 - **Test Post**: `/test-notebook`
 
 ### 2. LaTeX Equation Support ✅
+
 - **Status**: Fully implemented and tested
 - **Implementation**:
   - Configured `remark-math` and `rehype-katex` in `astro.config.ts`
@@ -25,6 +27,7 @@ Last Updated: 2026-02-17
 - **Test Post**: `/welcome-latex-test`
 
 ### 3. Multi-Topic Blog Posts ✅
+
 - **Status**: Fully implemented and tested
 - **Implementation**:
   - Content schema supports `topic: enum(['blog', 'modelrailroad', 'software'])`
@@ -36,6 +39,7 @@ Last Updated: 2026-02-17
 - **Content Config**: `src/content/config.ts`
 
 ### 4. Hierarchical Access Levels ✅
+
 - **Status**: Implemented in schema, deployment guide created
 - **Implementation**:
   - Content schema includes `accessLevel: enum(['public', 'friends', 'family', 'private'])`
@@ -44,6 +48,7 @@ Last Updated: 2026-02-17
 - **Documentation**: `docs/cloudflare-access.md`
 
 ### 5. Cloudflare Deployment Setup ✅
+
 - **Status**: Documentation and automation complete
 - **Implementation**:
   - Created comprehensive deployment guide
@@ -55,20 +60,24 @@ Last Updated: 2026-02-17
 ## 📋 Configuration Files Created
 
 ### Python Environment
+
 - ✅ `requirements.txt` - Python dependencies (nbconvert)
 - ✅ `.envrc` - Direnv configuration for auto-activation
 - ✅ `.venv/` - Virtual environment (in .gitignore)
 
 ### Documentation
+
 - ✅ `docs/jupyter-notebooks.md` - Jupyter notebook workflow
 - ✅ `docs/cloudflare-deployment.md` - Deployment guide with CLI commands
 - ✅ `docs/cloudflare-access.md` - Authentication setup with hierarchical access
 
 ### Deployment
+
 - ✅ `.github/workflows/deploy.yml` - GitHub Actions for auto-deploy
 - ✅ `public/_headers` - Cloudflare Pages headers (security + caching)
 
 ### Content
+
 - ✅ Sample posts for all three topics (blog, modelrailroad, software)
 - ✅ LaTeX test post
 - ✅ Jupyter notebook test post
@@ -76,6 +85,7 @@ Last Updated: 2026-02-17
 ## 🚀 Next Steps (TODO)
 
 ### Deployment
+
 1. **Set up Cloudflare account**:
    - Create Cloudflare Pages project: `blog-boser-guyon`
    - Get API token for deployment
@@ -86,16 +96,18 @@ Last Updated: 2026-02-17
    - `CLOUDFLARE_ACCOUNT_ID`
 
 3. **First Deployment**:
+
    ```bash
    # Option 1: Manual
    npm run build
    wrangler pages deploy dist --project-name=blog-boser-guyon
-   
+
    # Option 2: Push to GitHub
    git push origin main  # GitHub Actions will auto-deploy
    ```
 
 ### Authentication (Cloudflare Access)
+
 1. **Enable Cloudflare Access**
 2. **Create Application**: `Blog - Boser Guyon`
 3. **Set up Authentication Method**: One-time email PIN
@@ -106,6 +118,7 @@ Last Updated: 2026-02-17
 5. **Test with Gmail aliases**: `your+friend1@gmail.com`, etc.
 
 ### Content Organization
+
 1. **Organize posts by access level** (optional):
    ```
    src/data/post/
@@ -134,7 +147,7 @@ Last Updated: 2026-02-17
 
 - **Total Posts**: 5
   - LaTeX Test: 1
-  - Jupyter Notebook: 1  
+  - Jupyter Notebook: 1
   - Blog topic: 1
   - Model Railroad topic: 1
   - Software topic: 1

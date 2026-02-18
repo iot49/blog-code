@@ -19,7 +19,6 @@ This notebook demonstrates how Jupyter notebooks can be integrated into the Astr
 - Mathematical equations
 - Markdown cells
 
-
 ```python
 # Simple Python code example
 import numpy as np
@@ -36,7 +35,6 @@ print(f"Min value: {y.min():.3f}, Max value: {y.max():.3f}")
 ## Visualization
 
 Let's create a simple plot:
-
 
 ```python
 plt.figure(figsize=(10, 6))
@@ -61,6 +59,7 @@ Where $c$ is the wave speed and $\nabla^2$ is the Laplacian operator.
 ## Conclusion
 
 This notebook demonstrates the integration of:
+
 - **Code execution**: Python code with numpy and matplotlib
 - **Output display**: Print statements and visualizations
 - **LaTeX equations**: Mathematical notation

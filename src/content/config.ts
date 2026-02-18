@@ -59,14 +59,14 @@ const postCollection = defineCollection({
 
     // Topic organization
     topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
-    
+
     category: z.string().optional(),
     tags: z.array(z.string()).default([]),
     author: z.string().default('Your Name'),
 
     // Access control - default to most restrictive
     accessLevel: z.enum(['public', 'friends', 'family', 'private']).default('private'),
-    
+
     // Language support
     language: z.string().default('en'),
 

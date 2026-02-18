@@ -5,6 +5,7 @@ This guide covers setting up Cloudflare Access for hierarchical authentication o
 ## Overview
 
 Cloudflare Access provides Zero Trust authentication for your blog, allowing you to:
+
 - Protect content by access level (`public`, `friends`, `family`, `private`)
 - Use email-based authentication
 - Manage access policies via CLI
@@ -206,11 +207,13 @@ wrangler access policy update <policy-id> \
 Simplest approach - organize by folder and protect with Access policies.
 
 **Pros:**
+
 - Simple setup
 - Works with static hosting
 - Clear separation
 
 **Cons:**
+
 - URL structure reveals access level
 - Can't dynamically change accessLevel
 
@@ -222,22 +225,22 @@ For more dynamic control, use Cloudflare Workers to check JWT:
 // functions/[[path]].js
 export async function onRequest(context) {
   const { request, env } = context;
-  
+
   // Get JWT from Cloudflare Access
   const jwt = request.headers.get('cf-access-jwt-assertion');
-  
+
   if (!jwt) {
     // Public content - serve normally
     return context.next();
   }
-  
+
   // Decode JWT to get user email
   const payload = JSON.parse(atob(jwt.split('.')[1]));
   const userEmail = payload.email;
-  
+
   // Check if user has access to requested content
   // (implement your logic here)
-  
+
   return context.next();
 }
 ```
@@ -331,7 +334,7 @@ include = [
 ## Next Steps
 
 1. Create email lists for each access level
-2. Set up  test policies with Gmail aliases
+2. Set up test policies with Gmail aliases
 3. Organize posts by access level
 4. Test authentication flow
 5. Deploy to production

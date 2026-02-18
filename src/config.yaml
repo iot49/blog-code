@@ -11,7 +11,7 @@ metadata:
   title:
     default: Boser-Guyon
     template: '%s — Boser-Guyon'
-  description: "Personal blog by Boser-Guyon — travel, model railroading, and more."
+  description: 'Personal blog by Boser-Guyon — travel, model railroading, and more.'
   robots:
     index: true
     follow: true
