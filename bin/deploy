@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+pass() { echo -e "${GREEN}✓${RESET} $1"; }
+fail() { echo -e "${RED}✗${RESET} $1"; }
+info() { echo -e "${CYAN}▶${RESET} $1"; }
+warn() { echo -e "${YELLOW}⚠${RESET} $1"; }
+
+echo -e "\n${BOLD}=== Pre-deploy checks ===${RESET}\n"
+
+ERRORS=0
+
+# ── 1. Uncommitted changes ────────────────────────────────────────────────────
+info "Checking for uncommitted changes..."
+if [[ -n "$(git status --porcelain)" ]]; then
+  warn "You have uncommitted changes. They will NOT be included in this deploy."
+  git status --short
+  echo ""
+fi
+
+# ── 2. Prettier ───────────────────────────────────────────────────────────────
+info "Prettier (formatting check)..."
+if npm run check:prettier --silent 2>&1; then
+  pass "Prettier"
+else
+  fail "Prettier — run 'npm run fix:prettier' to auto-fix"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 3. ESLint ─────────────────────────────────────────────────────────────────
+info "ESLint..."
+if npm run check:eslint --silent 2>&1; then
+  pass "ESLint"
+else
+  fail "ESLint — run 'npm run fix:eslint' to auto-fix where possible"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 4. Astro type check ───────────────────────────────────────────────────────
+info "Astro type check..."
+if npm run check:astro --silent 2>&1; then
+  pass "Astro type check"
+else
+  fail "Astro type check"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 5. YAML frontmatter validation ────────────────────────────────────────────
+info "YAML frontmatter in posts..."
+YAML_ERRORS=0
+while IFS= read -r -d '' file; do
+  # Extract frontmatter between --- delimiters and validate with node
+  if ! node --input-type=module <<EOF 2>/dev/null
+import { readFileSync } from 'fs';
+import { load } from '${REPO_ROOT}/node_modules/js-yaml/dist/js-yaml.mjs';
+const content = readFileSync('${file}', 'utf8');
+const match = content.match(/^---\n([\s\S]*?)\n---/);
+if (match) load(match[1]);
+EOF
+  then
+    fail "Bad YAML frontmatter: $file"
+    YAML_ERRORS=$((YAML_ERRORS + 1))
+  fi
+done < <(find src/data/post -name "*.md" -o -name "*.mdx" | tr '\n' '\0')
+
+if [[ $YAML_ERRORS -eq 0 ]]; then
+  pass "YAML frontmatter"
+else
+  ERRORS=$((ERRORS + YAML_ERRORS))
+fi
+
+# ── 6. Build ──────────────────────────────────────────────────────────────────
+info "Production build..."
+if npm run build --silent 2>&1; then
+  pass "Build"
+else
+  fail "Build failed"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 7. Broken internal links (basic check on built output) ────────────────────
+info "Checking for broken internal links in built output..."
+LINK_ERRORS=0
+if [[ -d dist ]]; then
+  # Find all href/src references to internal paths in HTML files and check they exist
+  while IFS= read -r -d '' html; do
+    # Extract internal hrefs (not http/https/mailto/#)
+    grep -oP 'href="(/[^"#?]*)"' "$html" 2>/dev/null | grep -oP '(?<=href=")[^"]+' | while read -r link; do
+      # Strip trailing slash, check as file or index.html
+      local_path="dist${link}"
+      if [[ ! -e "$local_path" && ! -e "${local_path%/}/index.html" && ! -e "${local_path}.html" ]]; then
+        warn "Possibly broken link '$link' in $(basename "$html")"
+        LINK_ERRORS=$((LINK_ERRORS + 1))
+      fi
+    done
+  done < <(find dist -name "*.html" -print0)
+fi
+if [[ $LINK_ERRORS -eq 0 ]]; then
+  pass "Internal links"
+else
+  warn "Found $LINK_ERRORS possibly broken link(s) — review above (may include false positives)"
+  # Don't block deploy for link warnings — just warn
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+echo ""
+if [[ $ERRORS -gt 0 ]]; then
+  echo -e "${RED}${BOLD}✗ $ERRORS check(s) failed. Fix errors before deploying.${RESET}"
+  echo -e "  Tip: run ${CYAN}npm run fix${RESET} to auto-fix formatting issues.\n"
+  exit 1
+fi
+
+echo -e "${GREEN}${BOLD}✓ All checks passed!${RESET}\n"
+
+# ── Push ──────────────────────────────────────────────────────────────────────
+info "Pushing to GitHub..."
+git push
+echo -e "\n${GREEN}${BOLD}✓ Pushed. Cloudflare Pages will deploy shortly.${RESET}"
+echo -e "  ${CYAN}https://blog-boser-guyon.pages.dev${RESET}\n"
