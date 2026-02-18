@@ -4,9 +4,9 @@ title: 'Test Jupyter Notebook Integration'
 excerpt: 'A Jupyter notebook demonstration for the blog'
 topic: 'software'
 tags:
-    - python
-    - jupyter
-    - data-science
+  - python
+  - jupyter
+  - data-science
 draft: false
 accessLevel: 'public'
 ---

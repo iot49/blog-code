@@ -4,9 +4,9 @@ title: 'Getting Started with Model Railroading'
 excerpt: 'An introduction to the fascinating hobby of model railroading, covering scales, layout planning, and essential equipment'
 topic: 'modelrailroad'
 tags:
-    - railroad
-    - n-scale
-    - planning
+  - railroad
+  - n-scale
+  - planning
 draft: false
 accessLevel: 'public'
 ---

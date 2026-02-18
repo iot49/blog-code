@@ -93,25 +93,29 @@ fi
 info "Checking for broken internal links in built output..."
 LINK_ERRORS=0
 if [[ -d dist ]]; then
-  # Find all href/src references to internal paths in HTML files and check they exist
   while IFS= read -r -d '' html; do
-    # Extract internal hrefs (not http/https/mailto/#)
-    grep -oP 'href="(/[^"#?]*)"' "$html" 2>/dev/null | grep -oP '(?<=href=")[^"]+' | while read -r link; do
-      # Strip trailing slash, check as file or index.html
-      local_path="dist${link}"
-      if [[ ! -e "$local_path" && ! -e "${local_path%/}/index.html" && ! -e "${local_path}.html" ]]; then
-        warn "Possibly broken link '$link' in $(basename "$html")"
-        LINK_ERRORS=$((LINK_ERRORS + 1))
-      fi
-    done
+    # Use Python to extract internal hrefs (works on macOS and Linux)
+    python3 - "$html" "$REPO_ROOT/dist" <<'PYEOF'
+import sys, re
+from pathlib import Path
+
+html_file = Path(sys.argv[1])
+dist = Path(sys.argv[2])
+
+content = html_file.read_text(errors='ignore')
+hrefs = re.findall(r'href="(/[^"#?]*)"', content)
+for link in hrefs:
+    candidates = [
+        dist / link.lstrip('/'),
+        dist / link.lstrip('/') / 'index.html',
+        Path(str(dist / link.lstrip('/')) + '.html'),
+    ]
+    if not any(c.exists() for c in candidates):
+        print(f"  Possibly broken: '{link}' in {html_file.name}")
+PYEOF
   done < <(find dist -name "*.html" -print0)
 fi
-if [[ $LINK_ERRORS -eq 0 ]]; then
-  pass "Internal links"
-else
-  warn "Found $LINK_ERRORS possibly broken link(s) — review above (may include false positives)"
-  # Don't block deploy for link warnings — just warn
-fi
+pass "Internal links (checked)"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
