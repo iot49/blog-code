@@ -1,7 +1,7 @@
 import type { PaginateFunction } from 'astro';
 import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import type { Post } from '~/types';
+import type { Post, Taxonomy } from '~/types';
 import { APP_BLOG } from 'astrowind:config';
 import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
 
@@ -279,3 +279,39 @@ export async function getRelatedPosts(originalPost: Post, maxResults: number = 4
 
   return selectedPosts;
 }
+
+/** */
+export const findTags = async (): Promise<Array<Taxonomy & { count: number }>> => {
+  const posts = await fetchPosts();
+  const tags = posts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
+    if (post.tags && Array.isArray(post.tags)) {
+      post.tags.forEach((tag) => {
+        if (!acc[tag.slug]) {
+          acc[tag.slug] = { ...tag, count: 1 };
+        } else {
+          acc[tag.slug].count += 1;
+        }
+      });
+    }
+    return acc;
+  }, {});
+
+  return Object.values(tags).sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+};
+
+/** */
+export const findCategories = async (): Promise<Array<Taxonomy & { count: number }>> => {
+  const posts = await fetchPosts();
+  const categories = posts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
+    if (post.category) {
+      if (!acc[post.category.slug]) {
+        acc[post.category.slug] = { ...post.category, count: 1 };
+      } else {
+        acc[post.category.slug].count += 1;
+      }
+    }
+    return acc;
+  }, {});
+
+  return Object.values(categories).sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+};

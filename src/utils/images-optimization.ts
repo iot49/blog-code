@@ -223,6 +223,14 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
     return [];
   }
 
+  // Ensure image is valid for getImage
+  if (typeof image === 'string') {
+     // If it's a string, it must be a remote URL or an absolute public path
+     if (!image.startsWith('http') && !image.startsWith('/')) {
+       return []; 
+     }
+  }
+
   return Promise.all(
     breakpoints.map(async (w: number) => {
       const result = await getImage({ src: image, width: w, inferSize: true, ...(format ? { format: format } : {}) });
