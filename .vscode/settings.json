@@ -11,5 +11,13 @@
   "yaml.schemas": {
     "./.vscode/astrowind/config-schema.json": "/src/config.yaml"
   },
-  "eslint.useFlatConfig": true
+  "eslint.useFlatConfig": true,
+
+  // Paste images from clipboard into src/assets so Astro can optimise them.
+  // ${documentBaseName} = filename without extension, e.g. "2026-02-17 getting-started-model-railroading"
+  "markdown.copyFiles.destination": {
+    "src/data/post/**/*.md": "../../assets/images/posts/${documentBaseName}/${fileName}"
+  },
+  // Insert the ~/assets alias path so Astro resolves it correctly
+  "markdown.editor.filePaste.copyIntoWorkspace": "mediaFiles"
 }
