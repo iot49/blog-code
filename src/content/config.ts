@@ -51,15 +51,24 @@ const postCollection = defineCollection({
   schema: z.object({
     publishDate: z.date().optional(),
     updateDate: z.date().optional(),
-    draft: z.boolean().optional(),
+    draft: z.boolean().default(true), // Default to draft for security
 
     title: z.string(),
     excerpt: z.string().optional(),
     image: z.string().optional(),
 
+    // Topic organization
+    topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
+    
     category: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    author: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    author: z.string().default('Your Name'),
+
+    // Access control - default to most restrictive
+    accessLevel: z.enum(['public', 'friends', 'family', 'private']).default('private'),
+    
+    // Language support
+    language: z.string().default('en'),
 
     metadata: metadataDefinition(),
   }),
