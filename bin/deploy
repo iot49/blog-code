@@ -35,7 +35,7 @@ if npm run check:prettier --silent 2>&1; then
   pass "Prettier"
 else
   fail "Prettier — run 'npm run fix:prettier' to auto-fix"
-  ERRORS=$((ERRORS + 1))
+  exit 1
 fi
 
 # ── 3. ESLint ─────────────────────────────────────────────────────────────────
@@ -44,7 +44,7 @@ if npm run check:eslint --silent 2>&1; then
   pass "ESLint"
 else
   fail "ESLint — run 'npm run fix:eslint' to auto-fix where possible"
-  ERRORS=$((ERRORS + 1))
+  exit 1
 fi
 
 # ── 4. Astro type check ───────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ if npm run check:astro --silent 2>&1; then
   pass "Astro type check"
 else
   fail "Astro type check"
-  ERRORS=$((ERRORS + 1))
+  exit 1
 fi
 
 # ── 5. YAML frontmatter validation ────────────────────────────────────────────
@@ -77,7 +77,8 @@ done < <(find src/data/post -name "*.md" -o -name "*.mdx" | tr '\n' '\0')
 if [[ $YAML_ERRORS -eq 0 ]]; then
   pass "YAML frontmatter"
 else
-  ERRORS=$((ERRORS + YAML_ERRORS))
+  fail "$YAML_ERRORS YAML frontmatter errors found"
+  exit 1
 fi
 
 
@@ -87,7 +88,7 @@ if npm run build --silent 2>&1; then
   pass "Build"
 else
   fail "Build failed"
-  ERRORS=$((ERRORS + 1))
+  exit 1
 fi
 
 # ── 7. Broken internal links (basic check on built output) ────────────────────

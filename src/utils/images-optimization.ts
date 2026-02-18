@@ -225,10 +225,10 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
 
   // Ensure image is valid for getImage
   if (typeof image === 'string') {
-     // If it's a string, it must be a remote URL or an absolute public path
-     if (!image.startsWith('http') && !image.startsWith('/')) {
-       return []; 
-     }
+    // If it's a string, it must be a remote URL or an absolute public path
+    if (!image.startsWith('http') && !image.startsWith('/')) {
+      return [];
+    }
   }
 
   return Promise.all(
