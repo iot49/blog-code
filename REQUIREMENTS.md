@@ -52,19 +52,20 @@
 
 ## Fix Image Paths
 
-Problem: vscode automatically places images into a image/ folder and creates a reference when pasting into a .md file. This works fine for the preview (npm run dev), and also for the image: tag in the front-matter (simply copying the generated path). 
+Problem: vscode automatically places images into a image/ folder and creates a reference when pasting into a .md file. This works fine for the preview (npm run dev), and also for the image: tag in the front-matter (simply copying the generated path).
 
-It fails when deploying, since astro expects the file in the assets folder. 
+It fails when deploying, since astro expects the file in the assets folder.
 
 The current code uses a migration script that
-1) moves the file
-2) compresses it
-3) leaves the original files intact for the preview to still work.
+
+1. moves the file
+2. compresses it
+3. leaves the original files intact for the preview to still work.
 
 But it's broken! Architect a robust solution that still supports:
 
-1) Pasting images into .md/.mdx files with vscode (possibly other file formats like .ipynb might be supported also)
-2) Compresses and moves (as/if needed) files on deployment
-3) Is compatible view preview, npm run dev.
+1. Pasting images into .md/.mdx files with vscode (possibly other file formats like .ipynb might be supported also)
+2. Compresses and moves (as/if needed) files on deployment
+3. Is compatible view preview, npm run dev.
 
 If there are multiple solutions, explain their differences and make a recommendation.

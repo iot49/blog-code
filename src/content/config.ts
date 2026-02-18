@@ -61,18 +61,18 @@ const postCollection = defineCollection({
       // Topic organization
       topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
 
-    category: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    author: z.string().default('Bernhard Boser'),
+      category: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+      author: z.string().default('Bernhard Boser'),
 
-    // Access control - default to most restrictive
-    accessLevel: z.enum(['public', 'friends', 'family', 'private']).default('private'),
+      // Access control - default to most restrictive
+      accessLevel: z.enum(['public', 'friends', 'family', 'private']).default('private'),
 
-    // Language support
-    language: z.string().default('en'),
+      // Language support
+      language: z.string().default('en'),
 
-    metadata: metadataDefinition(),
-  }),
+      metadata: metadataDefinition(),
+    }),
 });
 
 export const collections = {
