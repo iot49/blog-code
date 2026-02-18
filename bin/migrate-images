@@ -59,15 +59,88 @@ IMAGE_RE = re.compile(
 )
 
 
+# Matches the frontmatter `image:` field in these forms:
+#   image: images/foo bar/img.png          ← VS Code paste (relative, no assets prefix)
+#   image: ../../assets/images/posts/...   ← relative to src/assets (after body migration)
+# Does NOT match:
+#   image: ~/assets/...                    ← already correct, leave alone
+#   image: https://...                     ← external URL, leave alone
+FRONTMATTER_IMAGE_RE = re.compile(
+    r"^(image:\s*)"
+    r"(?!"                              # negative lookahead — skip already-correct forms
+    r"~/assets/"
+    r"|https?://"
+    r"|/)"
+    r"(.+)$",                           # group 2: the raw path
+    re.MULTILINE,
+)
+
+
+def fix_frontmatter_image(md_file: Path, content: str) -> tuple[str, int]:
+    """
+    Normalise the frontmatter `image:` field.
+    Moves the image file to src/assets/ if needed and rewrites the path
+    to ~/assets/images/posts/... (the format findImage() expects).
+    Returns (new_content, number_of_changes).
+    """
+    m = FRONTMATTER_IMAGE_RE.search(content)
+    if not m:
+        return content, 0
+
+    prefix = m.group(1)   # "image: "
+    raw = m.group(2).strip()
+
+    # Resolve the source image path relative to the post file
+    src_image = (md_file.parent / raw).resolve()
+
+    if not src_image.exists():
+        warn(f"frontmatter image not found, skipping: {raw}")
+        return content, 0
+
+    # Work out the destination under src/assets/images/posts/
+    # Strip any leading "images/" or "../../assets/images/posts/" prefix
+    rel = Path(raw)
+    try:
+        sub = rel.relative_to("images")          # images/foo/img.png → foo/img.png
+    except ValueError:
+        try:
+            # ../../assets/images/posts/foo/img.png → foo/img.png
+            sub = Path(os.path.relpath(src_image, ASSETS_DIR))
+        except ValueError:
+            sub = Path(src_image.name)
+
+    dest_image = ASSETS_DIR / sub
+    dest_image.parent.mkdir(parents=True, exist_ok=True)
+
+    if not dest_image.exists():
+        shutil.move(str(src_image), str(dest_image))
+        info(f"Moved  (frontmatter) {src_image.relative_to(REPO_ROOT)}")
+        info(f"    →  {dest_image.relative_to(REPO_ROOT)}")
+    elif src_image != dest_image:
+        src_image.unlink(missing_ok=True)
+
+    # Rewrite to ~/assets/ path (required by findImage())
+    asset_path = f"~/assets/images/posts/{sub.as_posix()}"
+    new_content = content[: m.start()] + f"{prefix}{asset_path}" + content[m.end() :]
+    info(f"Frontmatter image: {raw!r} → {asset_path!r}")
+    return new_content, 1
+
+
 def migrate_post(md_file: Path) -> int:
     """Migrate images in a single post. Returns number of images migrated."""
     content = md_file.read_text(encoding="utf-8")
-    matches = list(IMAGE_RE.finditer(content))
-    if not matches:
-        return 0
 
     changed = 0
     new_content = content
+
+    # Fix frontmatter image: field first
+    new_content, fm_changed = fix_frontmatter_image(md_file, new_content)
+    changed += fm_changed
+
+    # Fix body image references
+    matches = list(IMAGE_RE.finditer(new_content))
+    if not matches and not fm_changed:
+        return 0
 
     for m in matches:
         alt_part = m.group(1)  # e.g. ![Illertal layout]
