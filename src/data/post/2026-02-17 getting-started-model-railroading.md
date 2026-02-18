@@ -10,6 +10,7 @@ tags:
 draft: false
 accessLevel: 'public'
 ---
+![Illertal Modellbahn layout — source: modellbahn-traumanlagen.de](~/assets/images/posts/2026-02-17-getting-started-model-railroading/image.png)
 
 # Getting Started with Model Railroading
 
