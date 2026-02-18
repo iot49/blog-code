@@ -4,19 +4,23 @@ bin/migrate-images
 
 Finds images stored next to posts (in images/ subdirectories) and:
   1. Moves them to src/assets/images/posts/<post-slug>/
-  2. Rewrites the markdown image references to use ~/assets/... paths
-     which Astro can optimise during build.
+  2. Rewrites the markdown image references to a relative path from the
+     post file to src/assets/, e.g. ../../assets/images/posts/foo/img.png
+     This works for both VS Code markdown preview and Astro's build.
 
 VS Code naturally pastes clipboard images as:
   ![alt](<images/post-name/image.png>)
 
 After migration the markdown becomes:
-  ![alt](~/assets/images/posts/post-name/image.png)
+  ![alt](<../../assets/images/posts/post-name/image.png>)
+
+Also normalises any existing ~/assets/ references to relative paths.
 
 Run automatically by bin/deploy before the build step.
 Safe to run multiple times (idempotent).
 """
 
+import os
 import re
 import shutil
 import sys
@@ -41,11 +45,17 @@ def warn(msg):
     print(f"{YELLOW}  ⚠{RESET}  {msg}")
 
 
-# Matches both:
-#   ![alt](<images/foo bar/img.png>)   ← angle-bracket form (spaces in path)
-#   ![alt](images/foo/img.png)         ← plain form
+# Matches image refs in three forms:
+#   ![alt](<images/foo bar/img.png>)          ← angle-bracket, spaces (VS Code paste)
+#   ![alt](images/foo/img.png)                ← plain relative (VS Code paste, no spaces)
+#   ![alt](~/assets/images/posts/foo/img.png) ← old ~/assets form (normalise to relative)
 IMAGE_RE = re.compile(
-    r'(!\[[^\]]*\])\((?:<(images/[^>]+)>|(images/[^\s)]+))\)'
+    r"(!\[[^\]]*\])\("
+    r"(?:"
+    r"<(images/[^>]+)>"              # group 2: angle-bracket images/ path
+    r"|(images/[^\s)]+)"             # group 3: plain images/ path
+    r"|~/assets/images/posts/([^)]+)"  # group 4: ~/assets/ path
+    r")\)"
 )
 
 
@@ -60,37 +70,49 @@ def migrate_post(md_file: Path) -> int:
     new_content = content
 
     for m in matches:
-        alt_part = m.group(1)          # e.g. ![Illertal layout]
-        rel_path = m.group(2) or m.group(3)  # e.g. images/foo bar/img.png
+        alt_part = m.group(1)  # e.g. ![Illertal layout]
 
-        src_image = md_file.parent / rel_path
-
-        if not src_image.exists():
-            warn(f"Image not found, skipping: {src_image.relative_to(REPO_ROOT)}")
-            continue
-
-        # Destination: src/assets/images/posts/<image-subdir>/<filename>
-        # Strip the leading "images/" prefix from rel_path
-        sub = Path(rel_path).relative_to("images")   # e.g. foo bar/img.png
-        dest_image = ASSETS_DIR / sub
-
-        dest_image.parent.mkdir(parents=True, exist_ok=True)
-
-        if not dest_image.exists():
-            shutil.move(str(src_image), str(dest_image))
-            info(f"Moved  {src_image.relative_to(REPO_ROOT)}")
-            info(f"    →  {dest_image.relative_to(REPO_ROOT)}")
+        if m.group(4):
+            # Already a ~/assets/ path — normalise to relative (no file move needed)
+            sub = Path(m.group(4))  # e.g. "2026-02-17 foo/image.png"
+            dest_image = ASSETS_DIR / sub
+            if not dest_image.exists():
+                warn(f"~/assets/ image not found, skipping: {dest_image.relative_to(REPO_ROOT)}")
+                continue
         else:
-            # Already migrated — just remove the source copy if it still exists
-            src_image.unlink(missing_ok=True)
-            info(f"Already in assets, removed source: {src_image.relative_to(REPO_ROOT)}")
+            rel_path = m.group(2) or m.group(3)  # e.g. images/foo bar/img.png
+            src_image = md_file.parent / rel_path
 
-        # Rewrite path in markdown: ~/assets/images/posts/<sub>
-        asset_path = f"~/assets/images/posts/{sub.as_posix()}"
+            if not src_image.exists():
+                warn(f"Image not found, skipping: {src_image.relative_to(REPO_ROOT)}")
+                continue
+
+            # Destination: src/assets/images/posts/<subpath>
+            sub = Path(rel_path).relative_to("images")  # e.g. foo bar/img.png
+            dest_image = ASSETS_DIR / sub
+            dest_image.parent.mkdir(parents=True, exist_ok=True)
+
+            if not dest_image.exists():
+                shutil.move(str(src_image), str(dest_image))
+                info(f"Moved  {src_image.relative_to(REPO_ROOT)}")
+                info(f"    →  {dest_image.relative_to(REPO_ROOT)}")
+            else:
+                src_image.unlink(missing_ok=True)
+                info(f"Already in assets, removed source: {src_image.relative_to(REPO_ROOT)}")
+
+        # Rewrite to a relative path from the post file.
+        # Works in both VS Code markdown preview and Astro build.
+        rel_to_post = Path(os.path.relpath(dest_image, md_file.parent)).as_posix()
+        if " " in rel_to_post:
+            asset_path = f"<{rel_to_post}>"
+        else:
+            asset_path = rel_to_post
+
         old_ref = m.group(0)
         new_ref = f"{alt_part}({asset_path})"
-        new_content = new_content.replace(old_ref, new_ref, 1)
-        changed += 1
+        if old_ref != new_ref:
+            new_content = new_content.replace(old_ref, new_ref, 1)
+            changed += 1
 
     if changed:
         md_file.write_text(new_content, encoding="utf-8")
@@ -100,7 +122,7 @@ def migrate_post(md_file: Path) -> int:
             for d in sorted(images_dir.rglob("*"), reverse=True):
                 if d.is_dir():
                     try:
-                        d.rmdir()  # only removes if empty
+                        d.rmdir()
                     except OSError:
                         pass
             try:
