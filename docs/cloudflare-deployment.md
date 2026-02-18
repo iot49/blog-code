@@ -36,7 +36,7 @@ export CLOUDFLARE_API_TOKEN="your-api-token"
 ### 1. Create Cloudflare Pages Project
 
 ```bash
-wrangler pages project create blog-boser-guyon --production-branch=main
+wrangler pages project create your-project-name --production-branch=main
 ```
 
 ### 2. Configure Build Settings
@@ -44,7 +44,7 @@ wrangler pages project create blog-boser-guyon --production-branch=main
 Create `wrangler.toml` in the project root:
 
 ```toml
-name = "blog-boser-guyon"
+name = "your-project-name"
 compatibility_date = "2024-01-01"
 
 [site]
@@ -70,7 +70,7 @@ Build and deploy manually:
 npm run build
 
 # Deploy to Cloudflare Pages
-wrangler pages deploy dist --project-name=blog-boser-guyon
+wrangler pages deploy dist --project-name=your-project-name
 ```
 
 ### Automated Deployment (GitHub Actions)
@@ -113,7 +113,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: blog-boser-guyon
+          projectName: your-project-name
           directory: dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -128,7 +128,7 @@ Add secrets to your GitHub repository:
 ### 1. Add Custom Domain via CLI
 
 ```bash
-wrangler pages domain add blog.boser-guyon.org --project-name=blog-boser-guyon
+wrangler pages domain add your-blog.com --project-name=your-project-name
 ```
 
 ### 2. Verify DNS Records
@@ -137,7 +137,7 @@ Cloudflare will provide DNS records. Add them to your domain:
 
 ```bash
 # Check current DNS records
-wrangler pages domain list --project-name=blog-boser-guyon
+wrangler pages domain list --project-name=your-project-name
 ```
 
 ## Environment Variables
@@ -146,10 +146,10 @@ Set environment variables for your Pages project:
 
 ```bash
 # For production
-wrangler pages secret put VARIABLE_NAME --project-name=blog-boser-guyon
+wrangler pages secret put VARIABLE_NAME --project-name=your-project-name
 
 # For preview environments
-wrangler pages secret put VARIABLE_NAME --env=preview --project-name=blog-boser-guyon
+wrangler pages secret put VARIABLE_NAME --env=preview --project-name=your-project-name
 ```
 
 ## Preview Deployments
@@ -162,7 +162,7 @@ Preview deployments are automatically created for:
 Access them via:
 
 ```
-https://<commit-hash>.blog-boser-guyon.pages.dev
+https://<commit-hash>.your-project-name.pages.dev
 ```
 
 ## Build Configuration
@@ -186,10 +186,10 @@ After deployment:
 
 ```bash
 # List deployments
-wrangler pages deployment list --project-name=blog-boser-guyon
+wrangler pages deployment list --project-name=your-project-name
 
 # Get deployment URL
-wrangler pages deployment get <deployment-id> --project-name=blog-boser-guyon
+wrangler pages deployment get <deployment-id> --project-name=your-project-name
 ```
 
 ## Troubleshooting
@@ -199,7 +199,7 @@ wrangler pages deployment get <deployment-id> --project-name=blog-boser-guyon
 Check build logs:
 
 ```bash
-wrangler pages deployment tail --project-name=blog-boser-guyon
+wrangler pages deployment tail --project-name=your-project-name
 ```
 
 ### Clear Cache
@@ -207,7 +207,7 @@ wrangler pages deployment tail --project-name=blog-boser-guyon
 Purge Cloudflare cache:
 
 ```bash
-wrangler pages deployment tail --project-name=blog-boser-guyon
+wrangler pages deployment tail --project-name=your-project-name
 ```
 
 ### DNS Issues
@@ -215,8 +215,8 @@ wrangler pages deployment tail --project-name=blog-boser-guyon
 Verify DNS propagation:
 
 ```bash
-dig blog.boser-guyon.org
-nslookup blog.boser-guyon.org
+dig your-blog.com
+nslookup your-blog.com
 ```
 
 ## Performance Optimization

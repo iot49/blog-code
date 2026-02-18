@@ -87,9 +87,9 @@ Last Updated: 2026-02-17
 ### Deployment
 
 1. **Set up Cloudflare account**:
-   - Create Cloudflare Pages project: `blog-boser-guyon`
+   - Create Cloudflare Pages project: `your-project-name`
    - Get API token for deployment
-   - Configure domain: `blog.boser-guyon.org`
+   - Configure domain: `your-blog.com`
 
 2. **Configure GitHub Secrets**:
    - `CLOUDFLARE_API_TOKEN`
@@ -100,7 +100,7 @@ Last Updated: 2026-02-17
    ```bash
    # Option 1: Manual
    npm run build
-   wrangler pages deploy dist --project-name=blog-boser-guyon
+   wrangler pages deploy dist --project-name=your-project-name
 
    # Option 2: Push to GitHub
    git push origin main  # GitHub Actions will auto-deploy
@@ -186,7 +186,7 @@ Last Updated: 2026-02-17
 ## 🔗 Important Links
 
 - **Local Dev**: http://localhost:4321
-- **Production** (after deployment): https://blog.boser-guyon.org
+- **Production** (after deployment): https://your-blog.com
 - **Documentation**: `docs/` directory
 - **GitHub Repo**: (to be configured)
 

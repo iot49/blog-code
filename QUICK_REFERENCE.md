@@ -5,7 +5,7 @@
 ### Starting Development
 
 ```bash
-cd /Users/boser/Documents/personal/iot/blog
+cd /path/to/your/blog
 # direnv automatically activates Python venv
 npm run dev
 # Open http://localhost:4321
@@ -61,7 +61,7 @@ npm run build
 
 ```bash
 npm run build
-wrangler pages deploy dist --project-name=blog-boser-guyon
+wrangler pages deploy dist --project-name=your-project-name
 ```
 
 #### Automatic (GitHub)
@@ -103,7 +103,7 @@ git push origin main
 ### Cloudflare (when set up)
 
 ```bash
-wrangler pages deployment list --project-name=blog-boser-guyon
+wrangler pages deployment list --project-name=your-project-name
 wrangler pages project list
 wrangler access application list
 ```
@@ -157,7 +157,7 @@ blog/
 - **Blog List**: http://localhost:4321/blog
 - **Single Post**: http://localhost:4321/post-slug
 - **Tag Page**: http://localhost:4321/tag/tag-name
-- **Production** (when deployed): https://blog.boser-guyon.org
+- **Production** (when deployed): https://your-blog.com
 
 ## Troubleshooting
 

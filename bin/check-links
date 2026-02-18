@@ -101,7 +101,7 @@ def check_url(url: str, timeout: int) -> tuple:
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (compatible; link-checker/1.0; "
-            "+https://blog-boser-guyon.pages.dev)"
+            "+https://github.com/onwidget/astrowind)"
         )
     }
     for method in ("HEAD", "GET"):

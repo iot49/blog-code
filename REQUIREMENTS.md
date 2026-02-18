@@ -19,7 +19,7 @@
 - Host on Cloudflare
   - setup entirely from CLI
   - ideally no need for Cloudflare GUI at all, except perhaps getting an API token
-- DOMAIN: blog.boser-guyon.org
+- DOMAIN: your-blog.com
 - Authentication & authorization
   - single sign-on (except public content, for which no sign-on is required)
   - using Cloudflare app (set up via CLI, not GUI)

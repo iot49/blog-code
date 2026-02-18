@@ -15,7 +15,7 @@ Cloudflare Access provides Zero Trust authentication for your blog, allowing you
 
 ```
 ┌─────────────────────────────────────────┐
-│  blog.boser-guyon.org                   │
+│  your-blog.com                   │
 ├─────────────────────────────────────────┤
 │  /public/*     → No auth required       │
 │  /friends/*    → Friends policy         │
@@ -48,7 +48,7 @@ wrangler access application list
 ```bash
 wrangler access application create \
   --name "Blog - Boser Guyon" \
-  --domain "blog.boser-guyon.org" \
+  --domain "your-blog.com" \
   --session-duration "24h"
 ```
 
