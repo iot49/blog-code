@@ -80,13 +80,8 @@ else
   ERRORS=$((ERRORS + YAML_ERRORS))
 fi
 
-# ── 6. Migrate images (move from images/ next to posts → src/assets/) ────────
-info "Migrating post images to src/assets/..."
-python3 "$REPO_ROOT/bin/migrate-images"
-# Stage any files the migration moved/rewrote
-git add -A src/assets/images src/data/post 2>/dev/null || true
 
-# ── 7. Build ──────────────────────────────────────────────────────────────────
+# ── 6. Build ──────────────────────────────────────────────────────────────────
 info "Production build..."
 if npm run build --silent 2>&1; then
   pass "Build"

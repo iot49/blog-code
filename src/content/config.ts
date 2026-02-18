@@ -48,17 +48,18 @@ const metadataDefinition = () =>
 
 const postCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/data/post' }),
-  schema: z.object({
-    publishDate: z.date().optional(),
-    updateDate: z.date().optional(),
-    draft: z.boolean().default(true), // Default to draft for security
+  schema: ({ image }) =>
+    z.object({
+      publishDate: z.date().optional(),
+      updateDate: z.date().optional(),
+      draft: z.boolean().default(true), // Default to draft for security
 
-    title: z.string(),
-    excerpt: z.string().optional(),
-    image: z.string().optional(),
+      title: z.string(),
+      excerpt: z.string().optional(),
+      image: image().optional(),
 
-    // Topic organization
-    topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
+      // Topic organization
+      topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
 
     category: z.string().optional(),
     tags: z.array(z.string()).default([]),

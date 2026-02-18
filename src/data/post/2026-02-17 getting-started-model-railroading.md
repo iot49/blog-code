@@ -9,9 +9,8 @@ tags:
   - planning
 draft: false
 accessLevel: 'public'
-image: ~/assets/images/posts/2026-02-17 getting-started-model-railroading/image.png
+image: images/2026-02-17 getting-started-model-railroading/image.png
 ---
-![Illertal Modellbahn layout — source: modellbahn-traumanlagen.de](<../../assets/images/posts/2026-02-17 getting-started-model-railroading/image.png>)
 
 **BEWARE: This article is AI generated and does not reflect my personal experience or knowledge. I am sharing it for testing purposes only.**
 
@@ -23,8 +22,6 @@ Model railroading is a rewarding hobby that combines engineering, creativity, an
 
 ## Choosing Your Scale
 
-![alt text](<images/2026-02-17 getting-started-model-railroading/image.png>)
-
 The first decision you'll make is selecting a scale. Here are the most popular options:
 
 ### N Scale (1:160)
@@ -32,6 +29,8 @@ The first decision you'll make is selecting a scale. Here are the most popular o
 - **Pros**: Compact layouts fit in smaller spaces, detailed models available
 - **Cons**: Smaller details can be harder to work with
 - **Best for**: Limited space, large layouts with long runs
+
+![Hafen](<images/2026-02-17 getting-started-model-railroading/image-1.png>)
 
 ### HO Scale (1:87)
 
@@ -46,6 +45,8 @@ The first decision you'll make is selecting a scale. Here are the most popular o
 - **Best for**: Those with dedicated layout rooms
 
 ## Layout Planning
+
+![kopf](<images/2026-02-17 getting-started-model-railroading/image-2.png>)
 
 Before buying track and trains, invest time in planning:
 
