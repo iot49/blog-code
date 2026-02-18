@@ -9,14 +9,21 @@ tags:
   - planning
 draft: false
 accessLevel: 'public'
+image: ~/assets/images/posts/2026-02-17 getting-started-model-railroading/image.png
 ---
 ![Illertal Modellbahn layout — source: modellbahn-traumanlagen.de](<../../assets/images/posts/2026-02-17 getting-started-model-railroading/image.png>)
+
+**BEWARE: This article is AI generated and does not reflect my personal experience or knowledge. I am sharing it for testing purposes only.**
 
 # Getting Started with Model Railroading
 
 Model railroading is a rewarding hobby that combines engineering, creativity, and history. Whether you're interested in recreating a specific era, building realistic scenery, or simply running trains, there's something for everyone.
 
+[Just a link](https://www.modellbahn-traumanlagen.de/)
+
 ## Choosing Your Scale
+
+![alt text](<images/2026-02-17 getting-started-model-railroading/image.png>)
 
 The first decision you'll make is selecting a scale. Here are the most popular options:
 
@@ -78,7 +85,7 @@ Key features of my layout:
 
 ## Resources
 
-- [Model Railroad Hobbyist Magazine](https://model-railroad-hobbyist.com/) - Free digital magazine
+- [Model Railroad Hobbyist Magazine](https://model-railroad-hobbyist.com/)
 - Local model railroad clubs - Great for learning and sharing knowledge
 - YouTube channels with tutorials and layout tours
 
@@ -86,4 +93,4 @@ Key features of my layout:
 
 Model railroading is as complex or simple as you want it to be. Start with a small, achievable goal and grow from there. The journey is as rewarding as the destination!
 
-_Next post: I'll share details about my layout design process and the challenges of modeling Swiss mountain railways._
+_Next post: I'll share details about my layout design process and the challenges of modeling Swiss mountain railways._ **Yeh, sure, AI fantasy!**
