@@ -5,7 +5,7 @@ excerpt: 'A beautiful weekend exploring the Swiss Alps, from Lauterbrunnen to Gr
 topic: 'blog'
 tags: ['travel', 'hiking', 'switzerland', 'mountains', 'adventure']
 draft: false
-accessLevel: 'public'
+accessLevel: 'family'
 ---
 
 # Weekend Adventure: Hiking the Bernese Oberland

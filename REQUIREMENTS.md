@@ -35,3 +35,17 @@
     * omissions?
     * better solutions?
     * are there any requested features that cannot be supported?
+
+## Update Site Appearance
+
+* icon: create a placeholder showing a mountain, e.g. Matterhorn
+* Name: AstroWind -> Boser-Guyon
+* Nav (top of page):
+    * Blog: shows the blog list
+    * Railroad: shows posts tagged railroad
+    * About: A few words about me (create a dummy for now - where? - for me to edit)
+* Keep the light/dark button
+* Remove RSS button (what is it for?)
+* Remove download button
+* Remove the top bar indicating a new version of Astro is available
+* Remove all content no longer needed, e.g. blog posts without the iso date in the file name

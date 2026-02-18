@@ -5,7 +5,7 @@ excerpt: 'Testing LaTeX equation rendering with KaTeX in our new AstroWind blog'
 topic: 'blog'
 tags: ['test', 'latex', 'math']
 draft: false
-accessLevel: 'public'
+accessLevel: 'private'
 ---
 
 # Welcome to the Blog!
