@@ -86,3 +86,4 @@ Some pages should that are not currently in data but should be there:
 
 Analyze the site and devise a plan to split the repo into two: blog/code and blog/content.
 Also delete unused pages, e.g. pricing.astro.
+

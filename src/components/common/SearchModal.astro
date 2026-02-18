@@ -60,13 +60,6 @@ const searchDataJson = JSON.stringify(searchData);
 <script>
   import Fuse from 'fuse.js';
 
-  const modal = document.getElementById('search-modal') as HTMLDialogElement;
-  const openBtn = document.getElementById('search-open');
-  const closeBtn = document.getElementById('search-close');
-  const searchInput = document.getElementById('modal-search-input') as HTMLInputElement;
-  const searchResults = document.getElementById('modal-search-results');
-  const searchDataContainer = document.querySelector('.search-data') as HTMLElement;
-
   interface SearchItem {
     title: string;
     excerpt: string;
@@ -78,6 +71,7 @@ const searchDataJson = JSON.stringify(searchData);
 
   function initSearch() {
     if (fuse) return;
+    const searchDataContainer = document.querySelector('.search-data') as HTMLElement;
     const searchData: SearchItem[] = JSON.parse(searchDataContainer?.dataset.search ?? '[]');
     fuse = new Fuse<SearchItem>(searchData, {
       keys: ['title', 'excerpt', 'tags'],
@@ -87,57 +81,69 @@ const searchDataJson = JSON.stringify(searchData);
     });
   }
 
-  function openModal() {
-    initSearch();
-    modal?.showModal();
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    searchInput?.focus();
+  function attachEvents() {
+    const modal = document.getElementById('search-modal') as HTMLDialogElement;
+    const openBtn = document.getElementById('search-open');
+    const closeBtn = document.getElementById('search-close');
+    const searchInput = document.getElementById('modal-search-input') as HTMLInputElement;
+    const searchResults = document.getElementById('modal-search-results');
+
+    if (!modal || !openBtn || !closeBtn || !searchInput || !searchResults) return;
+
+    function openModal() {
+      initSearch();
+      modal?.showModal();
+      document.body.style.overflow = 'hidden';
+      searchInput?.focus();
+    }
+
+    function closeModal() {
+      modal?.close();
+      document.body.style.overflow = '';
+      if (searchInput) searchInput.value = '';
+      if (searchResults) searchResults.innerHTML = '';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value;
+
+      if (!fuse || !searchResults) return;
+
+      if (query.length < 2) {
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      const results = fuse.search(query).slice(0, 10);
+
+      if (results.length === 0) {
+        searchResults.innerHTML = '<div class="p-4 text-center text-gray-500 dark:text-gray-400">No results found</div>';
+        return;
+      }
+
+      searchResults.innerHTML = results
+        .map(
+          (result) => `
+        <a href="${result.item.permalink}" class="block p-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 last:border-0">
+          <div class="text-base font-semibold text-gray-900 dark:text-white">${result.item.title}</div>
+          ${result.item.excerpt ? `<p class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">${result.item.excerpt}</p>` : ''}
+        </a>
+      `
+        )
+        .join('');
+    });
   }
 
-  function closeModal() {
-    modal?.close();
-    document.body.style.overflow = '';
-    if (searchInput) searchInput.value = '';
-    if (searchResults) searchResults.innerHTML = '';
-  }
-
-  openBtn?.addEventListener('click', openModal);
-  closeBtn?.addEventListener('click', closeModal);
-
-  modal?.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
-  });
-
-  searchInput?.addEventListener('input', (e) => {
-    const query = (e.target as HTMLInputElement).value;
-
-    if (!fuse || !searchResults) return;
-
-    if (query.length < 2) {
-      searchResults.innerHTML = '';
-      return;
-    }
-
-    const results = fuse.search(query).slice(0, 10);
-
-    if (results.length === 0) {
-      searchResults.innerHTML = '<div class="p-4 text-center text-gray-500 dark:text-gray-400">No results found</div>';
-      return;
-    }
-
-    searchResults.innerHTML = results
-      .map(
-        (result) => `
-      <a href="${result.item.permalink}" class="block p-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 last:border-0">
-        <div class="text-base font-semibold text-gray-900 dark:text-white">${result.item.title}</div>
-        ${result.item.excerpt ? `<p class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">${result.item.excerpt}</p>` : ''}
-      </a>
-    `
-      )
-      .join('');
-  });
+  document.addEventListener('astro:page-load', attachEvents);
 </script>
 
 <style>
