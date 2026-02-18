@@ -6,7 +6,7 @@ topic: 'modelrailroad'
 tags:
     - railroad
     - n-scale
-    -planning
+    - planning
 draft: false
 accessLevel: 'public'
 ---
