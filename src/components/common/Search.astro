@@ -16,16 +16,27 @@ const searchData = allPosts.map((post) => ({
 const searchDataJson = JSON.stringify(searchData);
 ---
 
-<div class="search-container">
+<div class="search-container" data-search={searchDataJson}>
   <input type="search" id="search-input" placeholder="Search posts..." class="search-input" aria-label="Search posts" />
   <div id="search-results" class="search-results hidden"></div>
 </div>
 
-<script define:vars={{ searchDataJson }}>
+<script>
   import Fuse from 'fuse.js';
 
-  const searchData = JSON.parse(searchDataJson);
-  const fuse = new Fuse(searchData, {
+  const container = document.querySelector('.search-container') as HTMLElement;
+
+  interface SearchItem {
+    title: string;
+    excerpt: string;
+    slug: string;
+    topic: string;
+    tags: string[];
+  }
+
+  const searchData: SearchItem[] = JSON.parse(container.dataset.search ?? '[]');
+
+  const fuse = new Fuse<SearchItem>(searchData, {
     keys: ['title', 'excerpt', 'tags'],
     threshold: 0.3,
     includeScore: true,
@@ -35,25 +46,25 @@ const searchDataJson = JSON.stringify(searchData);
   const searchResults = document.getElementById('search-results');
 
   searchInput?.addEventListener('input', (e) => {
-    const query = e.target.value;
+    const query = (e.target as HTMLInputElement).value;
 
     if (query.length < 2) {
-      searchResults.classList.add('hidden');
+      searchResults!.classList.add('hidden');
       return;
     }
 
     const results = fuse.search(query).slice(0, 5);
 
     if (results.length === 0) {
-      searchResults.innerHTML = '<div class="no-results">No results found</div>';
-      searchResults.classList.remove('hidden');
+      searchResults!.innerHTML = '<div class="no-results">No results found</div>';
+      searchResults!.classList.remove('hidden');
       return;
     }
 
-    searchResults.innerHTML = results
+    searchResults!.innerHTML = results
       .map(
         (result) => `
-      <a href="/${result.item.topic}/${result.item.slug}" class="search-result-item">
+      <a href="/${result.item.slug}" class="search-result-item">
         <strong>${result.item.title}</strong>
         ${result.item.excerpt ? `<p>${result.item.excerpt}</p>` : ''}
       </a>
@@ -61,13 +72,13 @@ const searchDataJson = JSON.stringify(searchData);
       )
       .join('');
 
-    searchResults.classList.remove('hidden');
+    searchResults!.classList.remove('hidden');
   });
 
   // Close results when clicking outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-container')) {
-      searchResults.classList.add('hidden');
+    if (!(e.target as Element).closest('.search-container')) {
+      searchResults!.classList.add('hidden');
     }
   });
 </script>
