@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+pass() { echo -e "${GREEN}✓${RESET} $1"; }
+fail() { echo -e "${RED}✗${RESET} $1"; }
+info() { echo -e "${CYAN}▶${RESET} $1"; }
+warn() { echo -e "${YELLOW}⚠${RESET} $1"; }
+
+echo -e "\n${BOLD}=== Blog Test Suite ===${RESET}\n"
+
+ERRORS=0
+
+# ── 1. Prettier ───────────────────────────────────────────────────────────────
+info "Prettier..."
+if npm run check:prettier --silent 2>&1 >/dev/null; then
+  pass "Prettier"
+else
+  fail "Prettier failed (try: npm run fix:prettier)"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 2. ESLint ─────────────────────────────────────────────────────────────────
+info "ESLint..."
+if npm run check:eslint --silent 2>&1 >/dev/null; then
+  pass "ESLint"
+else
+  fail "ESLint failed (try: npm run fix:eslint)"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 3. Astro Type Check ───────────────────────────────────────────────────────
+info "Astro type check..."
+if npm run check:astro --silent 2>&1 >/dev/null; then
+  pass "Astro type check"
+else
+  fail "Astro type check failed"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 4. Build ──────────────────────────────────────────────────────────────────
+info "Production build..."
+# Clean dist first to ensure we test a fresh build
+rm -rf dist
+if npm run build --silent 2>&1 >/dev/null; then
+  if [[ -d dist && "$(ls -A dist)" ]]; then
+    pass "Build succeeded"
+  else
+    fail "Build command succeeded but dist/ is empty or missing"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  fail "Build failed"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+echo ""
+if [[ $ERRORS -gt 0 ]]; then
+  echo -e "${RED}${BOLD}✗ $ERRORS check(s) failed.${RESET}"
+  exit 1
+fi
+
+echo -e "${GREEN}${BOLD}✓ All checks passed!${RESET}\n"
+exit 0
