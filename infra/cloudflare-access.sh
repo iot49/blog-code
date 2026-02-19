@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Cloudflare Access Configuration Sync
-# This script syncs access-list.yaml to Cloudflare Access Policies.
+# This script manages Cloudflare Access Applications and Policies for each access level.
+# It ensures path-based protection (e.g., domain.com/friends/*) is enforced.
 
 # Colors
 RED='\033[0;31m'
@@ -19,22 +20,52 @@ warn() { echo -e "${YELLOW}⚠${RESET} $1"; }
 
 # 1. Check Environment Variables
 info "Checking environment variables..."
-MISSING_VARS=0
-for var in CF_API_TOKEN CF_ACCOUNT_ID DOMAIN; do
+# Set fallbacks for deprecated names
+CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CF_API_TOKEN:-}}"
+CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-${CF_ACCOUNT_ID:-}}"
+
+for var in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID DOMAIN CLOUDFLARE_PROJECT_NAME; do
   if [[ -z "${!var:-}" ]]; then
-    warn "Missing $var"
-    MISSING_VARS=1
+    fail "Missing $var. Please set it in your environment or .env file."
+    exit 1
   fi
 done
 
-if [[ $MISSING_VARS -eq 1 ]]; then
-  fail "Required environment variables are missing. Please set them in .env or your shell."
-  if [[ "${DRY_RUN:-0}" != "1" ]]; then
-    exit 1
-  fi
-fi
+# 2. Get the actual Pages domains
+info "Fetching Pages project domains for '$CLOUDFLARE_PROJECT_NAME'..."
+# Fetch all domains associated with the project
+ALL_PROJECT_DOMAINS=$(npx -y wrangler pages project list --json | node -e "
+  const input = require('fs').readFileSync(0, 'utf8');
+  try {
+    const data = JSON.parse(input);
+    const proj = data.find(p => p['Project Name'] === '$CLOUDFLARE_PROJECT_NAME');
+    if (proj && proj['Project Domains']) {
+      // Domains are comma separated, e.g. 'proj-abc.pages.dev, custom.com'
+      const domains = proj['Project Domains'].split(',').map(d => d.trim());
+      console.log(domains.join(' '));
+    } else {
+      console.log('');
+    }
+  } catch (e) {
+    console.error(e);
+    console.log('');
+  }
+")
 
-CF_API_BASE="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access"
+PAGES_DOMAIN=$(echo "$ALL_PROJECT_DOMAINS" | node -e "
+  const input = require('fs').readFileSync(0, 'utf8').trim();
+  const domains = input ? input.split(/\s+/) : [];
+  console.log(domains.find(d => d.endsWith('.pages.dev')) || '');
+")
+
+if [[ -z "$PAGES_DOMAIN" ]]; then
+  warn "Could not resolve .pages.dev domain from Wrangler. Falling back to internal guess."
+  PAGES_DOMAIN="$CLOUDFLARE_PROJECT_NAME.pages.dev"
+fi
+info "Using Pages domain for wildcard: $PAGES_DOMAIN"
+info "Detected domains: $ALL_PROJECT_DOMAINS"
+
+CF_API_BASE="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/access"
 
 # Helper for API calls
 cf_api() {
@@ -43,143 +74,216 @@ cf_api() {
   shift 2
   local data=${1:-}
 
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    info "[DRY RUN] $method $CF_API_BASE$path ${data:+-d '$data'}"
-    # Return dummy successful response for dry run
-    echo '{"success": true, "result": []}'
-    return
-  fi
-
+  local res
   if [[ -n "$data" ]]; then
-    curl -s -X "$method" "$CF_API_BASE$path" \
-      -H "Authorization: Bearer $CF_API_TOKEN" \
+    res=$(curl -s -X "$method" "$CF_API_BASE$path" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       -H "Content-Type: application/json" \
-      -d "$data"
+      -d "$data")
   else
-    curl -s -X "$method" "$CF_API_BASE$path" \
-      -H "Authorization: Bearer $CF_API_TOKEN" \
-      -H "Content-Type: application/json"
+    res=$(curl -s -X "$method" "$CF_API_BASE$path" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -H "Content-Type: application/json")
   fi
+  echo "$res" > /tmp/cf_api_last_res.json
+  echo "$res"
 }
-
-# 2. Find Access Application
-info "Locating Access Application for $DOMAIN..."
-APPS_JSON=$(cf_api GET "/apps")
-APP_ID=$(echo "$APPS_JSON" | node -e "
-  const input = require('fs').readFileSync(0, 'utf8');
-  const data = JSON.parse(input);
-  if (!data.result) { console.log(''); process.exit(0); }
-  const app = data.result.find(a => a.domain === '$DOMAIN' || a.self_hosted_domains?.includes('$DOMAIN'));
-  console.log(app ? app.id : '');
-")
-
-if [[ -z "$APP_ID" ]]; then
-  fail "Could not find an Access Application for $DOMAIN on Cloudflare."
-  exit 1
-fi
-pass "Found Application ID: $APP_ID"
 
 # 3. Parse Access List
 info "Parsing access-list.yaml..."
-ACCESS_DATA=$(node "$(dirname "$0")/parse-access-list.js")
+# The yaml file is in the current directory or parent
+ACCESS_LIST_FILE="$(pwd)/access-list.yaml"
+if [[ ! -f "$ACCESS_LIST_FILE" && -f "../access-list.yaml" ]]; then
+  ACCESS_LIST_FILE="$(pwd)/../access-list.yaml"
+fi
 
-# 4. Sync Access Lists and Policies
-# Categories: friends, family, personal, etc.
+if [[ ! -f "$ACCESS_LIST_FILE" ]]; then
+  fail "Could not find $ACCESS_LIST_FILE"
+  exit 1
+fi
+
+# Switch to blog-code to have access to node_modules
+INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$INFRA_DIR/.."
+
+# Get categories from YAML
+ACCESS_DATA=$(node -e "
+  const fs = require('fs');
+  // Dynamic import or require with path
+  const yaml = require('./node_modules/js-yaml');
+  try {
+    const data = yaml.load(fs.readFileSync('$ACCESS_LIST_FILE', 'utf8'));
+    console.log(JSON.stringify(data));
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+")
+
 CATEGORIES=$(echo "$ACCESS_DATA" | node -e "const d = JSON.parse(require('fs').readFileSync(0, 'utf8')); console.log(Object.keys(d).join(' '))")
 
-for CATEGORY in $CATEGORIES; do
-  info "Syncing category: $CATEGORY..."
+# Standard access levels that don't need YAML (public/auth)
+SYNC_LEVELS="auth $CATEGORIES"
+
+# 4. Fetch existing apps once to avoid repeat calls
+info "Fetching existing Access Applications..."
+APPS_JSON=$(cf_api GET "/apps")
+
+sync_app() {
+  local LEVEL=$1
+  local APP_NAME="Blog - $LEVEL"
+  local PATH_PATTERN="$LEVEL/*"
+  local PRIMARY_DOMAIN="$DOMAIN/$PATH_PATTERN"
   
-  EMAILS=$(echo "$ACCESS_DATA" | node -e "
-    const d = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-    console.log(d['$CATEGORY'].join(','));
+  info "Syncing Application for level: $LEVEL ($PRIMARY_DOMAIN)..."
+
+  # Find existing app by name OR domain
+  local APP_ID=$(echo "$APPS_JSON" | node -e "
+    const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+    if (!data.result) process.exit(0);
+    const app = data.result.find(a => a.name === '$APP_NAME' || a.domain === '$PRIMARY_DOMAIN');
+    console.log(app ? app.id : '');
   ")
 
-  # 4a. Find or Create Access List
-  LISTS_JSON=$(cf_api GET "/lists")
-  LIST_ID=$(echo "$LISTS_JSON" | node -e "
-    const input = require('fs').readFileSync(0, 'utf8');
-    const data = JSON.parse(input);
-    if (!data.result) { console.log(''); process.exit(0); }
-    const list = data.result.find(l => l.name === 'Blog - $CATEGORY');
-    console.log(list ? list.id : '');
+  local APP_PAYLOAD=$(node -e "
+    const projectDomains = '$ALL_PROJECT_DOMAINS'.split(/\s+/).filter(Boolean);
+    const extraDomains = ['$DOMAIN', '*.$PAGES_DOMAIN'].filter(Boolean);
+    const allHostnames = [...new Set([...projectDomains, ...extraDomains])];
+    const domains = allHostnames.map(d => d + '/$PATH_PATTERN');
+    
+    const payload = {
+      type: 'self_hosted',
+      name: '$APP_NAME',
+      domain: '$PRIMARY_DOMAIN',
+      self_hosted_domains: domains,
+      session_duration: '24h',
+      app_launcher_visible: false
+    };
+    console.log(JSON.stringify(payload));
   ")
 
-  if [[ -z "$LIST_ID" ]]; then
-    info "Creating new Access List for $CATEGORY..."
-    LIST_PAYLOAD=$(printf '{"name":"Blog - %s","description":"Email list for %s access","emails":[%s]}' \
-      "$CATEGORY" "$CATEGORY" "$(echo "$EMAILS" | sed 's/[^, ]*/"&"/g')")
-    LIST_RES=$(cf_api POST "/lists" "$LIST_PAYLOAD")
-    LIST_ID=$(echo "$LIST_RES" | node -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf8')).result?.id || '')")
+  if [[ -z "$APP_ID" ]]; then
+    info "Creating new Access Application: $APP_NAME..."
+    local RES=$(cf_api POST "/apps" "$APP_PAYLOAD")
+    APP_ID=$(echo "$RES" | node -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf8')).result?.id || '')")
   else
-    info "Updating existing Access List for $CATEGORY..."
-    LIST_PAYLOAD=$(printf '{"name":"Blog - %s","description":"Email list for %s access","emails":[%s]}' \
-      "$CATEGORY" "$CATEGORY" "$(echo "$EMAILS" | sed 's/[^, ]*/"&"/g')")
-    cf_api PUT "/lists/$LIST_ID" "$LIST_PAYLOAD" > /dev/null
+    info "Updating existing Access Application: $APP_ID..."
+    cf_api PUT "/apps/$APP_ID" "$APP_PAYLOAD" > /dev/null
   fi
-  
-  if [[ -z "$LIST_ID" ]]; then
-    fail "Failed to manage Access List for $CATEGORY"
-    continue
-  fi
-  pass "Access List ready: $LIST_ID"
 
-  # 4b. Find or Create Access Policy
-  POLICIES_JSON=$(cf_api GET "/apps/$APP_ID/policies")
-  POLICY_ID=$(echo "$POLICIES_JSON" | node -e "
-    const input = require('fs').readFileSync(0, 'utf8');
-    const data = JSON.parse(input);
-    if (!data.result) { console.log(''); process.exit(0); }
-    const policy = data.result.find(p => p.name === '$CATEGORY Access');
-    console.log(policy ? policy.id : '');
+  if [[ -z "$APP_ID" ]]; then
+    fail "Failed to manage Application for $LEVEL"
+    # Check if this was an auth error
+    if grep -q "Authentication error" /tmp/cf_api_last_res.json; then
+      warn "Tip: Ensure your CF_API_TOKEN has 'Account > Access: Edit' permission."
+    fi
+    return 1
+  fi
+
+  # Sync Policy for this app
+  local POLICIES_JSON=$(cf_api GET "/apps/$APP_ID/policies")
+  local POLICY_ID=$(echo "$POLICIES_JSON" | node -e "
+    const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+    if (!data.result) process.exit(0);
+    const p = data.result.find(p => p.name === 'Default Access');
+    console.log(p ? p.id : '');
   ")
 
-  POLICY_PAYLOAD=$(printf '{"name":"%s Access","decision":"allow","precedence":10,"include":[{"group":{"id":"%s"}}]}' \
-    "$CATEGORY" "$LIST_ID")
+  local POLICY_PAYLOAD
+  if [[ "$LEVEL" == "auth" ]]; then
+    POLICY_PAYLOAD='{"name":"Default Access","decision":"allow","precedence":1,"include":[{"everyone":{}}]}'
+  else
+    # Get emails for this category
+    local EMAILS=$(echo "$ACCESS_DATA" | node -e "
+      const d = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+      console.log(JSON.stringify(d['$LEVEL']));
+    ")
+    POLICY_PAYLOAD=$(printf '{"name":"Default Access","decision":"allow","precedence":1,"include":[{"email":{"email":%s}}]}' \
+      "$EMAILS")
+    # Note: If multiple emails, we should use a group or multiple rules. 
+    # For simplicity, if EMAILS is an array, we'll map them.
+    POLICY_PAYLOAD=$(echo "$ACCESS_DATA" | node -e "
+      const d = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+      const emails = d['$LEVEL'] || [];
+      const include = emails.map(e => ({ email: { email: e } }));
+      console.log(JSON.stringify({
+        name: 'Default Access',
+        decision: 'allow',
+        precedence: 1,
+        include: include
+      }));
+    ")
+  fi
 
   if [[ -z "$POLICY_ID" ]]; then
-      info "Creating new Access Policy for $CATEGORY..."
-      cf_api POST "/apps/$APP_ID/policies" "$POLICY_PAYLOAD" > /dev/null
+    cf_api POST "/apps/$APP_ID/policies" "$POLICY_PAYLOAD" > /dev/null
   else
-      info "Updating existing Access Policy for $CATEGORY..."
-      cf_api PUT "/apps/$APP_ID/policies/$POLICY_ID" "$POLICY_PAYLOAD" > /dev/null
+    cf_api PUT "/apps/$APP_ID/policies/$POLICY_ID" "$POLICY_PAYLOAD" > /dev/null
   fi
-  pass "Access Policy synced for $CATEGORY"
+  
+  pass "Synchronized access for $LEVEL"
+}
+
+for L in $SYNC_LEVELS; do
+  sync_app "$L" || warn "Failed to sync $L"
 done
 
-# 5. Handle built-in paths
-# /public/* -> Bypass (or no policy)
-# /auth/* -> Any authenticated user
+# 5. Public Bypass (at the root domain if we want to bypass sub-paths or just for /public/*)
+sync_public_bypass() {
+  local LEVEL="public"
+  local APP_NAME="Blog - Public"
+  local PRIMARY_DOMAIN="$DOMAIN/public/*"
+  
+  info "Syncing Application for level: $LEVEL ($PRIMARY_DOMAIN)..."
 
-info "Syncing special policies..."
-# Any Authenticated User policy for /auth/*
-POLICY_ID=$(echo "$POLICIES_JSON" | node -e "
-  const input = require('fs').readFileSync(0, 'utf8');
-  const data = JSON.parse(input);
-  if (!data.result) { console.log(''); process.exit(0); }
-  const policy = data.result.find(p => p.name === 'Any Authenticated User');
-  console.log(policy ? policy.id : '');
-")
+  local APP_ID=$(echo "$APPS_JSON" | node -e "
+    const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+    if (!data.result) process.exit(0);
+    const app = data.result.find(a => a.name === '$APP_NAME' || a.domain === '$PRIMARY_DOMAIN');
+    console.log(app ? app.id : '');
+  ")
 
-AUTH_PAYLOAD='{"name":"Any Authenticated User","decision":"allow","precedence":5,"include":[{"everyone":{}}]}'
-if [[ -z "$POLICY_ID" ]]; then
-    cf_api POST "/apps/$APP_ID/policies" "$AUTH_PAYLOAD" > /dev/null
-fi
-pass "Authenticated User policy synced"
+  local APP_PAYLOAD=$(node -e "
+    const projectDomains = '$ALL_PROJECT_DOMAINS'.split(/\s+/).filter(Boolean);
+    const extraDomains = ['$DOMAIN', '*.$PAGES_DOMAIN'].filter(Boolean);
+    const allHostnames = [...new Set([...projectDomains, ...extraDomains])];
+    const domains = allHostnames.map(d => d + '/public/*');
+    
+    const payload = {
+      type: 'self_hosted',
+      name: '$APP_NAME',
+      domain: '$PRIMARY_DOMAIN',
+      self_hosted_domains: domains,
+      session_duration: '24h',
+      app_launcher_visible: false
+    };
+    console.log(JSON.stringify(payload));
+  ")
 
-# Bypass for /public/*
-POLICY_ID=$(echo "$POLICIES_JSON" | node -e "
-  const input = require('fs').readFileSync(0, 'utf8');
-  const data = JSON.parse(input);
-  if (!data.result) { console.log(''); process.exit(0); }
-  const policy = data.result.find(p => p.name === 'Public Bypass');
-  console.log(policy ? policy.id : '');
-")
+  if [[ -z "$APP_ID" ]]; then
+    local RES=$(cf_api POST "/apps" "$APP_PAYLOAD")
+    APP_ID=$(echo "$RES" | node -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf8')).result?.id || '')")
+  else
+    cf_api PUT "/apps/$APP_ID" "$APP_PAYLOAD" > /dev/null
+  fi
 
-BYPASS_PAYLOAD='{"name":"Public Bypass","decision":"bypass","precedence":1,"include":[{"everyone":{}}]}'
-if [[ -z "$POLICY_ID" ]]; then
-    cf_api POST "/apps/$APP_ID/policies" "$BYPASS_PAYLOAD" > /dev/null
-fi
-pass "Public Bypass policy synced"
+  if [[ -n "$APP_ID" ]]; then
+    local POLICIES_JSON=$(cf_api GET "/apps/$APP_ID/policies")
+    local POLICY_ID=$(echo "$POLICIES_JSON" | node -e "
+      const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+      const p = data.result?.find(p => p.name === 'Bypass');
+      console.log(p ? p.id : '');
+    ")
+    local POLICY_PAYLOAD='{"name":"Bypass","decision":"bypass","precedence":1,"include":[{"everyone":{}}]}'
+    if [[ -z "$POLICY_ID" ]]; then
+      cf_api POST "/apps/$APP_ID/policies" "$POLICY_PAYLOAD" > /dev/null
+    else
+      cf_api PUT "/apps/$APP_ID/policies/$POLICY_ID" "$POLICY_PAYLOAD" > /dev/null
+    fi
+    pass "Public path explicitly bypassed"
+  fi
+}
 
-echo -e "\n${GREEN}${BOLD}✓ Cloudflare Access configuration synced successfully!${RESET}"
+sync_public_bypass
+
+echo -e "\n${GREEN}${BOLD}✓ Cloudflare Access policies synchronized!${RESET}"

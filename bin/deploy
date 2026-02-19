@@ -94,9 +94,9 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   rsync -av --update --delete "$BLOG_CONTENT_DIR/data/post/" src/data/post/
   
   # Sync config and navigation
-  if [[ -f "$BLOG_CONTENT_DIR/config.yaml" ]]; then cp "$BLOG_CONTENT_DIR/config.yaml" src/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/navigation.ts" ]]; then cp "$BLOG_CONTENT_DIR/navigation.ts" src/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/access-list.yaml" ]]; then cp "$BLOG_CONTENT_DIR/access-list.yaml" ./; fi
+  if [[ -f "$BLOG_CONTENT_DIR/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/config.yaml" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/navigation.ts" ]]; then rsync -av "$BLOG_CONTENT_DIR/navigation.ts" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/access-list.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/access-list.yaml" ./; fi
   
   # Sync assets
   if [[ -d "$BLOG_CONTENT_DIR/assets/images" ]]; then
@@ -125,8 +125,8 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   fi
 
   # Sync pages if they exist
-  if [[ -f "$BLOG_CONTENT_DIR/pages/about.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/about.astro" src/pages/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/pages/contact.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/contact.astro" src/pages/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/pages/about.astro" ]]; then rsync -av "$BLOG_CONTENT_DIR/pages/about.astro" src/pages/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/pages/contact.astro" ]]; then rsync -av "$BLOG_CONTENT_DIR/pages/contact.astro" src/pages/; fi
 
   pass "Content synced from blog-content"
 else
@@ -232,7 +232,14 @@ git push || warn "Git push failed, but proceeding to deploy..."
 PROJECT_NAME="${CLOUDFLARE_PROJECT_NAME:-your-project-name}"
 
 info "Deploying to Cloudflare Pages (Direct Upload) to assignment: $PROJECT_NAME..."
-npx wrangler pages deploy dist --project-name "$PROJECT_NAME"
+npx -y wrangler pages deploy dist --project-name "$PROJECT_NAME"
+
+# ── 11. Sync Cloudflare Access ────────────────────────────────────────────────
+if [[ -f "infra/cloudflare-access.sh" ]]; then
+  info "Syncing Cloudflare Access policies..."
+  export CLOUDFLARE_PROJECT_NAME="$PROJECT_NAME"
+  bash infra/cloudflare-access.sh
+fi
 
 echo -e "\n${GREEN}${BOLD}✓ Deployed!${RESET}"
 echo -e "  ${CYAN}https://${PROJECT_NAME}.pages.dev${RESET}\n"
