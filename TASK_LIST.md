@@ -180,7 +180,7 @@ pass "Search index contains no restricted-level metadata"
 
 ---
 
-## T3 — Draft Post Exclusion (Explicit Verification)
+## T3 — Draft Post Exclusion (Explicit Verification) ✅
 
 **Goal**: Confirm that posts with `draft: true` in frontmatter are **completely absent** from the built output. Currently this relies on Astro's default behaviour; this task makes it an explicit, tested guarantee.
 

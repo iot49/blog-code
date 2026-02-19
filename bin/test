@@ -103,6 +103,36 @@ else
    warn "Could not locate search index in built files"
 fi
 
+# ── 8. Draft Post Exclusion Checks ────────────────────────────────────────────
+info "Verifying draft post exclusion..."
+# Find all draft posts in src/data/post
+DRAFT_POSTS=$(grep -l "draft: true" src/data/post/*.md*)
+
+if [[ -z "$DRAFT_POSTS" ]]; then
+  warn "No draft posts found to check."
+else
+  DRAFT_FOUND=0
+  for post in $DRAFT_POSTS; do
+    # Extract slug from filename (e.g., src/data/post/test-draft.md -> test-draft)
+    slug=$(basename "$post" | sed 's/\.mdx\?$//')
+    
+    # Check if the slug exists in dist/
+    if find dist -name "${slug}" 2>/dev/null | grep -q .; then
+      fail "Draft post '$slug' found in dist/!"
+      DRAFT_FOUND=1
+    elif find dist -name "${slug}.html" 2>/dev/null | grep -q .; then
+        fail "Draft post '$slug.html' found in dist/!"
+        DRAFT_FOUND=1
+    fi
+  done
+  
+  if [[ $DRAFT_FOUND -eq 0 ]]; then
+    pass "All draft posts excluded from dist/"
+  else
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ $ERRORS -gt 0 ]]; then
