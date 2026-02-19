@@ -68,6 +68,9 @@ const postCollection = defineCollection({
       // Access control - default to most restrictive
       accessLevel: z.string().default('private'),
 
+      // Pinned status
+      pinned: z.boolean().default(false),
+
       // Language support
       language: z.string().default('en'),
 

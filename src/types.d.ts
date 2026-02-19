@@ -45,6 +45,9 @@ export interface Post {
 
   /** Access level for the post (public, friends, family, private, etc.) */
   accessLevel?: string;
+
+  /** Whether the post is pinned to the top of lists */
+  pinned?: boolean;
 }
 
 export interface Taxonomy {

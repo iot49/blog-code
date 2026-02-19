@@ -57,6 +57,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     draft = false,
     metadata = {},
     accessLevel = 'private',
+    pinned = false,
   } = data;
 
   const slug = cleanSlug(id); // cleanSlug(rawSlug.split('/').pop());
@@ -79,6 +80,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     id: id,
     slug: slug,
     accessLevel: accessLevel,
+    pinned: pinned,
     permalink: await generatePermalink({ id, slug, publishDate, category: category?.slug, accessLevel }),
 
     publishDate: publishDate,
@@ -109,7 +111,12 @@ const load = async function (): Promise<Array<Post>> {
 
   const results = (await Promise.all(normalizedPosts))
     .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
-    .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) {
+        return a.pinned ? -1 : 1;
+      }
+      return b.publishDate.valueOf() - a.publishDate.valueOf();
+    })
     .filter((post) => !post.draft)
     .filter((post) => allowedAccessLevels.includes(post.accessLevel || 'private'));
 
