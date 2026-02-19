@@ -52,6 +52,8 @@ fi
 info "Content structure check..."
 if [[ -d "../blog-content" ]]; then
   pass "Content repo found at ../blog-content"
+  # Sync posts for testing
+  rsync -av --update --delete "../blog-content/data/post/" src/data/post/ >/dev/null
 else
   warn "Content repo NOT found at ../blog-content (will use local samples)"
 fi
@@ -194,6 +196,26 @@ if [[ -f infra/cloudflare-access.sh ]]; then
     || { fail "Cloudflare infra script syntax error"; ERRORS=$((ERRORS + 1)); }
 else
   fail "Cloudflare infra script 'infra/cloudflare-access.sh' is missing!"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ── 13. Documentation posts Checks ──────────────────────────────────────────
+info "Verifying documentation posts presence..."
+# Slugs are derived from the path under src/data/post/
+DOC_PATH_SLUGS=("docs/overview" "docs/installation" "docs/authentication" "docs/comments" "docs/search" "docs/translation" "docs/vscode-images" "docs/deployment" "docs/jupyter-notebooks")
+MISSING=0
+for slug in "${DOC_PATH_SLUGS[@]}"; do
+  # In dist/public/, hierarchical slugs are reflected in subdirectories
+  if [[ ! -f "dist/public/${slug}/index.html" ]]; then
+    warn "Doc post missing from dist: public/${slug}/index.html"
+    MISSING=$((MISSING + 1))
+  fi
+done
+
+if [[ $MISSING -eq 0 ]]; then
+  pass "All documentation posts present in dist/public/docs/"
+else
+  fail "$MISSING documentation posts missing"
   ERRORS=$((ERRORS + 1))
 fi
 

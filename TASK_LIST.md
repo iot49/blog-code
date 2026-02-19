@@ -397,7 +397,7 @@ fi
 
 ---
 
-## T8 — Documentation Blog Posts
+## T8 — Documentation Blog Posts ✅
 
 **Goal**: Setup and feature documentation is published as blog posts (in `blog-content`) so readers can find it directly on the blog, with an overview post linking all others.
 

@@ -30,8 +30,8 @@ Cloudflare Access provides Zero Trust authentication for your blog, allowing you
 2. Domain configured on Cloudflare
 3. Wrangler CLI installed
 4. Cloudflare API token with the following permissions:
-    - **Account** > **Access: Organizations and Groups** > **Edit**
-    - **Account** > **Access: Apps and Policies** > **Edit**
+   - **Account** > **Access: Organizations and Groups** > **Edit**
+   - **Account** > **Access: Apps and Policies** > **Edit**
 
 ## Setup
 
