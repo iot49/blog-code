@@ -221,7 +221,7 @@ pass "All draft posts excluded from dist/"
 
 ---
 
-## T4 — Giscus Comments
+## T4 — Giscus Comments ✅
 
 **Goal**: A Giscus comment widget appears at the bottom of every blog post. Configuration is supplied via environment variables.
 

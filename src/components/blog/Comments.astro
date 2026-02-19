@@ -1,0 +1,40 @@
+---
+/**
+ * Giscus Comments Component
+ *
+ * This component renders the Giscus comment widget.
+ * It uses environment variables for configuration.
+ */
+
+const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO;
+const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
+const giscusCategory = import.meta.env.PUBLIC_GISCUS_CATEGORY;
+const giscusCategoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+
+// Only enable if the repository is configured
+const isEnabled = !!giscusRepo;
+---
+
+{
+  isEnabled && (
+    <section class="max-w-3xl mx-auto px-6 py-12 sm:px-6 sm:py-16 lg:py-20">
+      <script
+        src="https://giscus.app/client.js"
+        data-repo={giscusRepo}
+        data-repo-id={giscusRepoId}
+        data-category={giscusCategory}
+        data-category-id={giscusCategoryId}
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      />
+    </section>
+  )
+}

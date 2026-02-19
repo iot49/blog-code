@@ -60,6 +60,12 @@ fi
 info "Production build..."
 # Clean dist first to ensure we test a fresh build
 rm -rf dist
+# Set dummy Giscus env vars for testing the widget presence
+export PUBLIC_GISCUS_REPO="iot49/blog-comments"
+export PUBLIC_GISCUS_REPO_ID="dummy"
+export PUBLIC_GISCUS_CATEGORY="General"
+export PUBLIC_GISCUS_CATEGORY_ID="dummy"
+
 if npm run build --silent 2>&1 >/dev/null; then
   if [[ -d dist && "$(ls -A dist)" ]]; then
     pass "Build succeeded"
@@ -131,6 +137,21 @@ else
   else
     ERRORS=$((ERRORS + 1))
   fi
+fi
+
+# ── 9. Giscus Comments Checks ─────────────────────────────────────────────────
+info "Verifying Giscus widget presence..."
+# Check in a sample public post
+SAMPLE_POST=$(find dist/public -name "index.html" | head -n 1)
+if [[ -n "$SAMPLE_POST" ]]; then
+  if grep -q "giscus.app/client.js" "$SAMPLE_POST"; then
+    pass "Giscus widget present in public post HTML"
+  else
+    fail "Giscus widget NOT found in $SAMPLE_POST!"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  warn "No public posts found to check for Giscus widget."
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
