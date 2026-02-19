@@ -1,0 +1,37 @@
+---
+import { Icon } from 'astro-icon/components';
+
+/**
+ * Translate component
+ * Renders a button that opens Google Translate for the current page.
+ * This approach is privacy-preserving as it only connects to Google on click.
+ */
+
+const {
+  class:
+    className = 'text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center',
+} = Astro.props;
+
+// We'll use a client-side script to get the current URL
+---
+
+<button id="translate-button" class={className} aria-label="Translate this page" title="Translate this page">
+  <Icon name="tabler:language" class="w-5 h-5" />
+</button>
+
+<script>
+  function attachTranslate() {
+    const translateButton = document.getElementById('translate-button');
+    if (translateButton) {
+      translateButton.addEventListener('click', () => {
+        const currentUrl = window.location.href;
+        const translateUrl = `https://translate.google.com/translate?u=${encodeURIComponent(currentUrl)}`;
+        window.open(translateUrl, '_blank');
+      });
+    }
+  }
+
+  // Handle initial load and View Transitions
+  attachTranslate();
+  document.addEventListener('astro:after-swap', attachTranslate);
+</script>

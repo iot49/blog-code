@@ -154,6 +154,20 @@ else
   warn "No public posts found to check for Giscus widget."
 fi
 
+# ── 10. Translation element Checks ───────────────────────────────────────────
+info "Verifying translation element presence..."
+# Check in a sample public post
+if [[ -n "$SAMPLE_POST" ]]; then
+  if grep -qi "translate-button" "$SAMPLE_POST"; then
+    pass "Translation element present in public post HTML"
+  else
+    fail "Translation element NOT found in $SAMPLE_POST!"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  warn "No public posts found to check for translation element."
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ $ERRORS -gt 0 ]]; then

@@ -266,7 +266,7 @@ fi
 
 ---
 
-## T5 — Client-Side Translation
+## T5 — Client-Side Translation ✅
 
 **Goal**: A "Translate this page" button (opt-in, no tracking by default) appears on every page, enabling browser-side translation.
 
