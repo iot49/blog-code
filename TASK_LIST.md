@@ -35,7 +35,7 @@ chmod +x bin/test
 
 ---
 
-## T1 — Access-Level URL Routing
+## T1 — Access-Level URL Routing ✅
 
 **Goal**: Every post is served at `/{accessLevel}/{slug}` (e.g. `/public/hello-world`, `/friends/my-diary`). Cloudflare Access policies can then protect each prefix path.
 
@@ -96,7 +96,51 @@ assert_no_private_under_public
 
 ---
 
-## T2 — Search Data Privacy
+## T1b — Project Structure ✅
+
+**Goal**: Split the repository into `blog-code` (application logic) and `blog-content` (Markdown/MDX, config, navigation). Ensure `blog-code` uses content from `blog-content` during build, but maintains sample content for testing.
+
+### Changes
+
+1. **[NEW] `../blog-content`** (already exists) - Ensure it's the canonical source for:
+   - `src/content/post/` (the blog posts)
+   - `src/config.yaml` (site config)
+   - `src/navigation.ts` (menu structure)
+   - `src/assets/images/` (post assets)
+   - `src/pages/about.astro`, `contact.astro` (content pages)
+
+2. **[NEW] `../blog-comments`** - Create empty repo for Giscus discussions (if not using this repo for comments).
+   _(Note: Giscus uses a GitHub repo's Discussions. If `blog-comments` is for that, we just need to init it on GitHub. For now, we just ensure the folder exists if needed or skip if it's cloud-only)._
+
+3. **[MODIFY] `astro.config.ts` / `src/content/config.ts`**
+   - Config mapping: Allow loading content from `BLOG_CONTENT_DIR` env var if valid.
+   - For now, we will rely on a **build-time copy/sync** script because Astro content collections must be inside `src/` (or symlinked).
+   - _Strategy_: `bin/deploy` (and `bin/build-content`) will `rsync` from `../blog-content` into `src/` before building.
+
+4. **[MODIFY] `bin/deploy`**
+   - Add step: Sync content from `../blog-content` (if it exists) into `src/data`, `src/assets`, `src/config.yaml`, etc.
+
+### Verification
+
+```bash
+# 1. Modify a post in ../blog-content
+# 2. Run build
+BLOG_CONTENT_DIR=../blog-content npm run build
+# 3. Verify the change appears in dist/
+```
+
+### `bin/test` additions
+
+```bash
+# [T1b] Content sync check
+if [[ -d "../blog-content" ]]; then
+  pass "Content repo found at ../blog-content"
+else
+  warn "Content repo NOT found at ../blog-content (using local samples?)"
+fi
+```
+
+## T2 — Search Data Privacy ✅
 
 **Goal**: The static search index baked into the HTML/JSON must contain **only** metadata for `public` posts. Restricted post titles, excerpts, and slugs must not be visible to unauthenticated visitors.
 

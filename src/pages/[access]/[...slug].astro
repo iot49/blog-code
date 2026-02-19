@@ -16,7 +16,28 @@ import RelatedPosts from '~/components/blog/RelatedPosts.astro';
 export const prerender = true;
 
 export const getStaticPaths = (async () => {
-  return await getStaticPathsBlogPost();
+  const paths = await getStaticPathsBlogPost();
+  return paths.map((path) => {
+    const permalink = path.params.blog as string;
+    // permalink is like "public/slug" or "friends/slug".
+    const [access, ...slugParts] = permalink.split('/');
+    const slug = slugParts.join('/');
+
+    // Validate consistency
+    if (path.props.post.accessLevel && access !== path.props.post.accessLevel) {
+      throw new Error(
+        `Access level mismatch for post ${path.props.post.slug}: URL prefix '${access}' != frontmatter '${path.props.post.accessLevel}'`
+      );
+    }
+
+    return {
+      params: {
+        access,
+        slug: slug || undefined,
+      },
+      props: path.props,
+    };
+  });
 }) satisfies GetStaticPaths;
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;

@@ -3,35 +3,36 @@ import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import type { Post, Taxonomy } from '~/types';
 import { APP_BLOG } from 'astrowind:config';
-import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
+import { cleanSlug, trimSlash, BLOG_BASE, CATEGORY_BASE, TAG_BASE } from './permalinks';
+import { load as loadYaml } from 'js-yaml';
+import { readFileSync, existsSync } from 'node:fs';
+
+const ACCESS_LIST_PATH = 'access-list.yaml';
+let allowedAccessLevels: string[] = ['public', 'auth'];
+
+try {
+  if (existsSync(ACCESS_LIST_PATH)) {
+    const fileContents = readFileSync(ACCESS_LIST_PATH, 'utf8');
+    const data = loadYaml(fileContents) as Record<string, unknown>;
+    if (data) {
+      allowedAccessLevels = [...allowedAccessLevels, ...Object.keys(data)];
+    }
+  }
+} catch (e) {
+  console.error('Error loading access-list.yaml', e);
+}
 
 const generatePermalink = async ({
-  id,
   slug,
-  publishDate,
-  category,
+  accessLevel,
 }: {
   id: string;
   slug: string;
   publishDate: Date;
   category: string | undefined;
+  accessLevel: string;
 }) => {
-  const year = String(publishDate.getFullYear()).padStart(4, '0');
-  const month = String(publishDate.getMonth() + 1).padStart(2, '0');
-  const day = String(publishDate.getDate()).padStart(2, '0');
-  const hour = String(publishDate.getHours()).padStart(2, '0');
-  const minute = String(publishDate.getMinutes()).padStart(2, '0');
-  const second = String(publishDate.getSeconds()).padStart(2, '0');
-
-  const permalink = POST_PERMALINK_PATTERN.replace('%slug%', slug)
-    .replace('%id%', id)
-    .replace('%category%', category || '')
-    .replace('%year%', year)
-    .replace('%month%', month)
-    .replace('%day%', day)
-    .replace('%hour%', hour)
-    .replace('%minute%', minute)
-    .replace('%second%', second);
+  const permalink = `/${accessLevel}/${slug}`;
 
   return permalink
     .split('/')
@@ -55,6 +56,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     author,
     draft = false,
     metadata = {},
+    accessLevel = 'private',
   } = data;
 
   const slug = cleanSlug(id); // cleanSlug(rawSlug.split('/').pop());
@@ -76,7 +78,8 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
   return {
     id: id,
     slug: slug,
-    permalink: await generatePermalink({ id, slug, publishDate, category: category?.slug }),
+    accessLevel: accessLevel,
+    permalink: await generatePermalink({ id, slug, publishDate, category: category?.slug, accessLevel }),
 
     publishDate: publishDate,
     updateDate: updateDate,
@@ -106,7 +109,9 @@ const load = async function (): Promise<Array<Post>> {
 
   const results = (await Promise.all(normalizedPosts))
     .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
-    .filter((post) => !post.draft);
+    .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
+    .filter((post) => !post.draft)
+    .filter((post) => allowedAccessLevels.includes(post.accessLevel || 'private'));
 
   return results;
 };
@@ -157,12 +162,14 @@ export const findPostsByIds = async (ids: Array<string>): Promise<Array<Post>> =
 
   const posts = await fetchPosts();
 
-  return ids.reduce(function (r: Array<Post>, id: string) {
+  const foundPosts = ids.reduce(function (r: Array<Post>, id: string) {
     posts.some(function (post: Post) {
       return id === post.id && r.push(post);
     });
     return r;
   }, []);
+
+  return foundPosts.filter((post) => post.accessLevel === 'public');
 };
 
 /** */
@@ -170,13 +177,16 @@ export const findLatestPosts = async ({ count }: { count?: number }): Promise<Ar
   const _count = count || 4;
   const posts = await fetchPosts();
 
-  return posts ? posts.slice(0, _count) : [];
+  return posts ? posts.filter((post) => post.accessLevel === 'public').slice(0, _count) : [];
 };
 
 /** */
 export const getStaticPathsBlogList = async ({ paginate }: { paginate: PaginateFunction }) => {
   if (!isBlogEnabled || !isBlogListRouteEnabled) return [];
-  return paginate(await fetchPosts(), {
+  const posts = await fetchPosts();
+  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+
+  return paginate(publicPosts, {
     params: { blog: BLOG_BASE || undefined },
     pageSize: blogPostsPerPage,
   });
@@ -198,8 +208,10 @@ export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: Pagin
   if (!isBlogEnabled || !isBlogCategoryRouteEnabled) return [];
 
   const posts = await fetchPosts();
+  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+
   const categories = {};
-  posts.map((post) => {
+  publicPosts.map((post) => {
     if (post.category?.slug) {
       categories[post.category?.slug] = post.category;
     }
@@ -207,7 +219,7 @@ export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: Pagin
 
   return Array.from(Object.keys(categories)).flatMap((categorySlug) =>
     paginate(
-      posts.filter((post) => post.category?.slug && categorySlug === post.category?.slug),
+      publicPosts.filter((post) => post.category?.slug && categorySlug === post.category?.slug),
       {
         params: { category: categorySlug, blog: CATEGORY_BASE || undefined },
         pageSize: blogPostsPerPage,
@@ -222,8 +234,10 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
   if (!isBlogEnabled || !isBlogTagRouteEnabled) return [];
 
   const posts = await fetchPosts();
+  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+
   const tags = {};
-  posts.map((post) => {
+  publicPosts.map((post) => {
     if (Array.isArray(post.tags)) {
       post.tags.map((tag) => {
         tags[tag?.slug] = tag;
@@ -233,7 +247,7 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
 
   return Array.from(Object.keys(tags)).flatMap((tagSlug) =>
     paginate(
-      posts.filter((post) => Array.isArray(post.tags) && post.tags.find((elem) => elem.slug === tagSlug)),
+      publicPosts.filter((post) => Array.isArray(post.tags) && post.tags.find((elem) => elem.slug === tagSlug)),
       {
         params: { tag: tagSlug, blog: TAG_BASE || undefined },
         pageSize: blogPostsPerPage,
@@ -244,11 +258,15 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
 };
 
 /** */
+/** */
 export async function getRelatedPosts(originalPost: Post, maxResults: number = 4): Promise<Post[]> {
   const allPosts = await fetchPosts();
+  // Ensure we only show public related posts
+  const publicPosts = allPosts.filter((post) => post.accessLevel === 'public');
+
   const originalTagsSet = new Set(originalPost.tags ? originalPost.tags.map((tag) => tag.slug) : []);
 
-  const postsWithScores = allPosts.reduce((acc: { post: Post; score: number }[], iteratedPost: Post) => {
+  const postsWithScores = publicPosts.reduce((acc: { post: Post; score: number }[], iteratedPost: Post) => {
     if (iteratedPost.slug === originalPost.slug) return acc;
 
     let score = 0;
@@ -283,7 +301,10 @@ export async function getRelatedPosts(originalPost: Post, maxResults: number = 4
 /** */
 export const findTags = async (): Promise<Array<Taxonomy & { count: number }>> => {
   const posts = await fetchPosts();
-  const tags = posts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
+  // Filter for public posts only
+  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+
+  const tags = publicPosts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
     if (post.tags && Array.isArray(post.tags)) {
       post.tags.forEach((tag) => {
         if (!acc[tag.slug]) {
@@ -302,7 +323,10 @@ export const findTags = async (): Promise<Array<Taxonomy & { count: number }>> =
 /** */
 export const findCategories = async (): Promise<Array<Taxonomy & { count: number }>> => {
   const posts = await fetchPosts();
-  const categories = posts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
+  // Filter for public posts only
+  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+
+  const categories = publicPosts.reduce((acc: Record<string, Taxonomy & { count: number }>, post) => {
     if (post.category) {
       if (!acc[post.category.slug]) {
         acc[post.category.slug] = { ...post.category, count: 1 };

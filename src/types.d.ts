@@ -42,6 +42,9 @@ export interface Post {
 
   /**  */
   readingTime?: number;
+
+  /** Access level for the post (public, friends, family, private, etc.) */
+  accessLevel?: string;
 }
 
 export interface Taxonomy {

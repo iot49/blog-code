@@ -48,7 +48,15 @@ else
   ERRORS=$((ERRORS + 1))
 fi
 
-# ── 4. Build ──────────────────────────────────────────────────────────────────
+# ── 4. Content Structure Check ────────────────────────────────────────────────
+info "Content structure check..."
+if [[ -d "../blog-content" ]]; then
+  pass "Content repo found at ../blog-content"
+else
+  warn "Content repo NOT found at ../blog-content (will use local samples)"
+fi
+
+# ── 5. Build ──────────────────────────────────────────────────────────────────
 info "Production build..."
 # Clean dist first to ensure we test a fresh build
 rm -rf dist
@@ -62,6 +70,37 @@ if npm run build --silent 2>&1 >/dev/null; then
 else
   fail "Build failed"
   ERRORS=$((ERRORS + 1))
+fi
+
+# ── 6. Access-Level Security Checks ───────────────────────────────────────────
+info "Verifying access-level routing..."
+if [[ -d "dist/public" ]]; then
+  if grep -rl 'accessLevel.*private\|accessLevel.*friends\|accessLevel.*family' dist/public/ >/dev/null 2>&1; then
+    fail "Private/restricted post metadata found under dist/public/"
+    ERRORS=$((ERRORS + 1))
+  else
+    pass "No restricted content under dist/public/"
+  fi
+else
+  warn "dist/public/ not found (no public posts?)"
+fi
+
+# ── 7. Search Data Privacy Checks ─────────────────────────────────────────────
+info "Verifying search index privacy..."
+# Find the built JS file that contains the search data
+SEARCH_INDEX_FILE=$(find dist -type f -name "*.html" -exec grep -l "data-search" {} + | head -n 1)
+
+if [[ -n "$SEARCH_INDEX_FILE" ]]; then
+  # Check if restricted post titles appear in the search index
+  # Note: This is a heuristic. It looks for known restricted titles in the bundled code.
+  if grep -q "Test Friends Post" "$SEARCH_INDEX_FILE"; then
+    fail "Restricted post title 'Test Friends Post' found in search index!"
+    ERRORS=$((ERRORS + 1))
+  else
+    pass "Restricted content not found in search index"
+  fi
+else
+   warn "Could not locate search index in built files"
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────

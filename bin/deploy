@@ -82,7 +82,44 @@ else
 fi
 
 
-# ── 6. Build ──────────────────────────────────────────────────────────────────
+
+# ── 6. Sync Content from blog-content ─────────────────────────────────────────
+info "Syncing content..."
+BLOG_CONTENT_DIR="${BLOG_CONTENT_DIR:-../blog-content}"
+
+if [[ -d "$BLOG_CONTENT_DIR" ]]; then
+  info "Syncing from $BLOG_CONTENT_DIR..."
+  
+  # Sync posts
+  rsync -av --update --delete "$BLOG_CONTENT_DIR/data/post/" src/data/post/
+  
+  # Sync config and navigation
+  if [[ -f "$BLOG_CONTENT_DIR/config.yaml" ]]; then cp "$BLOG_CONTENT_DIR/config.yaml" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/navigation.ts" ]]; then cp "$BLOG_CONTENT_DIR/navigation.ts" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/access-list.yaml" ]]; then cp "$BLOG_CONTENT_DIR/access-list.yaml" ./; fi
+  
+  # Sync assets
+  if [[ -d "$BLOG_CONTENT_DIR/assets/images" ]]; then
+    # Sync to src/assets/images (for global assets)
+    mkdir -p src/assets/images
+    rsync -av --update "$BLOG_CONTENT_DIR/assets/images/" src/assets/images/
+    
+    # Sync to src/data/post/images (for colocated post images)
+    mkdir -p src/data/post/images
+    rsync -av --update "$BLOG_CONTENT_DIR/assets/images/" src/data/post/images/
+  fi
+  
+  # Sync pages if they exist
+  if [[ -f "$BLOG_CONTENT_DIR/pages/about.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/about.astro" src/pages/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/pages/contact.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/contact.astro" src/pages/; fi
+
+  pass "Content synced from blog-content"
+else
+  warn "Content dir $BLOG_CONTENT_DIR not found. Using local sample content."
+fi
+
+
+# ── 7. Build ──────────────────────────────────────────────────────────────────
 info "Production build..."
 if npm run build --silent 2>&1; then
   pass "Build"
@@ -91,7 +128,7 @@ else
   exit 1
 fi
 
-# ── 7. Broken internal links (basic check on built output) ────────────────────
+# ── 8. Broken internal links (basic check on built output) ────────────────────
 info "Checking for broken internal links in built output..."
 LINK_ERRORS=0
 if [[ -d dist ]]; then
@@ -118,6 +155,19 @@ PYEOF
   done < <(find dist -name "*.html" -print0)
 fi
 pass "Internal links (checked)"
+
+# ── 9. Access-Level Security Checks ───────────────────────────────────────────
+info "Verifying access-level routing..."
+if [[ -d "dist/public" ]]; then
+  if grep -rl 'accessLevel.*private\|accessLevel.*friends\|accessLevel.*family' dist/public/ >/dev/null 2>&1; then
+    fail "Private/restricted post metadata found under dist/public/"
+    ERRORS=$((ERRORS + 1))
+  else
+    pass "No restricted content under dist/public/"
+  fi
+else
+  warn "dist/public/ not found (no public posts?)"
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""

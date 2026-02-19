@@ -3,12 +3,14 @@ import { fetchPosts } from '~/utils/blog';
 
 const allPosts = await fetchPosts();
 
-const searchData = allPosts.map((post) => ({
-  title: post.title,
-  excerpt: post.excerpt || '',
-  permalink: post.permalink,
-  tags: post.tags?.map((tag) => tag.title) || [],
-}));
+const searchData = allPosts
+  .filter((post) => post.accessLevel === 'public')
+  .map((post) => ({
+    title: post.title,
+    excerpt: post.excerpt || '',
+    permalink: post.permalink,
+    tags: post.tags?.map((tag) => tag.title) || [],
+  }));
 
 const searchDataJson = JSON.stringify(searchData);
 ---

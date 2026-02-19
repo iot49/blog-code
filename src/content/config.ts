@@ -66,7 +66,7 @@ const postCollection = defineCollection({
       author: z.string().default('John Dummy'),
 
       // Access control - default to most restrictive
-      accessLevel: z.enum(['public', 'friends', 'family', 'private']).default('private'),
+      accessLevel: z.string().default('private'),
 
       // Language support
       language: z.string().default('en'),
