@@ -168,6 +168,24 @@ else
   warn "No public posts found to check for translation element."
 fi
 
+# ── 11. Image Asset Pipeline Checks ───────────────────────────────────────────
+info "Verifying image asset pipeline..."
+# Check if there are any images in src/data/post/images (samples)
+IMAGE_SAMPLES=$(find src/data/post/images -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.webp" \) 2>/dev/null | wc -l)
+if [[ $IMAGE_SAMPLES -gt 0 ]]; then
+  # Check if any images made it to dist/_astro (optimized)
+  # Astro 5 uses _astro/ directory for assets by default
+  DIST_ASSETS=$(find dist/_astro -type f \( -name "*.webp" -o -name "*.png" -o -name "*.jpg" \) 2>/dev/null | wc -l)
+  if [[ $DIST_ASSETS -gt 0 ]]; then
+    pass "Image assets successfully processed and optimized"
+  else
+    fail "Images found in src/data/post/images but not in dist/_astro/!"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  warn "No image samples found in src/data/post/images to verify pipeline."
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ $ERRORS -gt 0 ]]; then

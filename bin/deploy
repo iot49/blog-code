@@ -109,6 +109,21 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
     rsync -av --update "$BLOG_CONTENT_DIR/assets/images/" src/data/post/images/
   fi
   
+  # Handle VSCode pasted images in posts
+  # If there is a src/data/post/images directory, it might contain pasted images
+  if [[ -d "src/data/post/images" ]]; then
+    info "Consolidating post images to assets..."
+    mkdir -p src/assets/images
+    # Use -a to preserve structure, --update to skip newer local files
+    rsync -av --update "src/data/post/images/" src/assets/images/
+    
+    # Rewrite paths in Markdown files: ![...](images/...) -> ![...](../../assets/images/...)
+    # We do this on the local copies in src/data/post/
+    info "Rewriting image paths in local post copies..."
+    # macOS sed needs -i ''
+    find src/data/post -type f \( -name "*.md" -o -name "*.mdx" \) -exec sed -i '' 's|(\./images/|(../../assets/images/|g; s|(images/|(../../assets/images/|g' {} +
+  fi
+
   # Sync pages if they exist
   if [[ -f "$BLOG_CONTENT_DIR/pages/about.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/about.astro" src/pages/; fi
   if [[ -f "$BLOG_CONTENT_DIR/pages/contact.astro" ]]; then cp "$BLOG_CONTENT_DIR/pages/contact.astro" src/pages/; fi

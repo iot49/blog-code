@@ -306,7 +306,7 @@ fi
 
 ---
 
-## T6 — VSCode Image Paste Support
+## T6 — VSCode Image Paste Support ✅
 
 **Goal**: Authors can paste images into VSCode while editing Markdown in `blog-content`. The deploy pipeline copies `images/` → Astro `src/assets/`, rewrites Markdown image paths, and optionally compresses images — without modifying source files.
 
