@@ -62,22 +62,23 @@ wrangler access identity-provider add \
   --name "Email OTP"
 ```
 
-## Access Policies
+### 4. Sync Policies via CLI
 
-### Policy Structure
+Instead of manual configuration, use the provided sync script. This script reads `access-list.yaml` and ensures Cloudflare Access matches your configuration perfectly.
 
-Each access level has a corresponding policy:
+```bash
+# 1. Set environment variables (or add to .env)
+export CF_API_TOKEN="..."
+export CF_ACCOUNT_ID="..."
+export DOMAIN="your-blog.com"
 
-1. **Public** - No authentication
-2. **Friends** - Email list (friends)
-3. **Family** - Email list (family)
-4. **Private** - Specific email (your email only)
+# 2. Run the sync script
+./infra/cloudflare-access.sh
+```
 
-### Creating Policies via CLI
+### Manual Policy Creation (Reference)
 
-#### Public Content (No Auth)
-
-Public content doesn't need Cloudflare Access. Serve it directly.
+If you prefer manual control, you can use `wrangler`:
 
 #### Friends Policy
 
@@ -87,33 +88,8 @@ wrangler access policy create \
   --name "Friends Access" \
   --path "/friends/*" \
   --decision "allow" \
-  --  include-email "friend1@example.com" \
-  --include-email "friend2@example.com" \
-  --include-email "yourpersonal@gmail.com"
-```
-
-#### Family Policy
-
-```bash
-wrangler access policy create \
-  --application-id "<app-id>" \
-  --name "Family Access" \
-  --path "/family/*" \
-  --decision "allow" \
-  --include-email "family1@example.com" \
-  --include-email "family2@example.com" \
-  --include-email "yourpersonal@gmail.com"
-```
-
-#### Private Policy
-
-```bash
-wrangler access policy create \
-  --application-id "<app-id>" \
-  --name "Private Access" \
-  --path "/private/*" \
-  --decision "allow" \
-  --include-email "yourpersonal@gmail.com"
+  --include-email "friend1@example.com" \
+  --include-email "friend2@example.com"
 ```
 
 ### Using Email Lists

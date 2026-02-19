@@ -186,6 +186,17 @@ else
   warn "No image samples found in src/data/post/images to verify pipeline."
 fi
 
+# ── 12. Cloudflare Infrastructure Checks ─────────────────────────────────────
+info "Verifying Cloudflare infrastructure script..."
+if [[ -f infra/cloudflare-access.sh ]]; then
+  # Syntax check only
+  bash -n infra/cloudflare-access.sh && pass "Cloudflare infra script syntax OK" \
+    || { fail "Cloudflare infra script syntax error"; ERRORS=$((ERRORS + 1)); }
+else
+  fail "Cloudflare infra script 'infra/cloudflare-access.sh' is missing!"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ $ERRORS -gt 0 ]]; then

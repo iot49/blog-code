@@ -349,7 +349,7 @@ fi
 
 ---
 
-## T7 — Cloudflare Access Infrastructure
+## T7 — Cloudflare Access Infrastructure ✅
 
 **Goal**: CF Access policies can be created and updated via CLI/Terraform — no GUI required. One policy per access level. The email lists come from `access-list.yaml`.
 
