@@ -1,1 +1,25 @@
-../../../blog-content/pages/about.astro
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+
+const metadata = {
+  title: 'About',
+};
+---
+
+<Layout metadata={metadata}>
+  <Hero tagline="About me">
+    <Fragment slot="title">
+      Hi, I'm <span class="text-accent dark:text-white">Boser-Guyon</span>
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      Welcome to my personal blog. I write about the things I love: hiking in the Alps, model railroading, and the
+      occasional technical deep-dive.
+      <br /><br />
+      <!-- Edit this section with your own bio -->
+      I live in Switzerland and spend my weekends either on a mountain trail or tinkering with my model railroad layout.
+      This blog is where I share those adventures.
+    </Fragment>
+  </Hero>
+</Layout>

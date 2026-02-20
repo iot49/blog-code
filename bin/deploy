@@ -125,8 +125,10 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   fi
 
   # Sync pages if they exist
-  if [[ -f "$BLOG_CONTENT_DIR/pages/about.astro" ]]; then rsync -av "$BLOG_CONTENT_DIR/pages/about.astro" src/pages/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/pages/contact.astro" ]]; then rsync -av "$BLOG_CONTENT_DIR/pages/contact.astro" src/pages/; fi
+  if [[ -d "$BLOG_CONTENT_DIR/pages" ]]; then
+    info "Syncing pages from $BLOG_CONTENT_DIR/pages..."
+    rsync -av --update "$BLOG_CONTENT_DIR/pages/" src/pages/
+  fi
 
   pass "Content synced from blog-content"
 else
@@ -165,7 +167,7 @@ for link in hrefs:
         Path(str(dist / link.lstrip('/')) + '.html'),
     ]
     if not any(c.exists() for c in candidates):
-        print(f"  Possibly broken: '{link}' in {html_file.name}")
+        print(f"  Possibly broken: '{link}' in {html_file.relative_to(dist)}")
 PYEOF
   done < <(find dist -name "*.html" -print0)
 fi
