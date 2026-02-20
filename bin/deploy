@@ -91,22 +91,22 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   info "Syncing from $BLOG_CONTENT_DIR..."
   
   # Sync posts
-  rsync -av --update --delete "$BLOG_CONTENT_DIR/data/post/" src/data/post/
+  rsync -av --update --delete "$BLOG_CONTENT_DIR/src/data/post/" src/data/post/
   
   # Sync config and navigation
-  if [[ -f "$BLOG_CONTENT_DIR/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/config.yaml" src/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/navigation.ts" ]]; then rsync -av "$BLOG_CONTENT_DIR/navigation.ts" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/src/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/config.yaml" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/src/navigation.ts" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/navigation.ts" src/; fi
   if [[ -f "$BLOG_CONTENT_DIR/access-list.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/access-list.yaml" ./; fi
   
   # Sync assets
-  if [[ -d "$BLOG_CONTENT_DIR/assets/images" ]]; then
+  if [[ -d "$BLOG_CONTENT_DIR/src/assets/images" ]]; then
     # Sync to src/assets/images (for global assets)
     mkdir -p src/assets/images
-    rsync -av --update "$BLOG_CONTENT_DIR/assets/images/" src/assets/images/
+    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/images/" src/assets/images/
     
     # Sync to src/data/post/images (for colocated post images)
     mkdir -p src/data/post/images
-    rsync -av --update "$BLOG_CONTENT_DIR/assets/images/" src/data/post/images/
+    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/images/" src/data/post/images/
   fi
   
   # Handle VSCode pasted images in posts
@@ -125,9 +125,9 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   fi
 
   # Sync pages if they exist
-  if [[ -d "$BLOG_CONTENT_DIR/pages" ]]; then
-    info "Syncing pages from $BLOG_CONTENT_DIR/pages..."
-    rsync -av --update "$BLOG_CONTENT_DIR/pages/" src/pages/
+  if [[ -d "$BLOG_CONTENT_DIR/src/pages" ]]; then
+    info "Syncing pages from $BLOG_CONTENT_DIR/src/pages..."
+    rsync -av --update "$BLOG_CONTENT_DIR/src/pages/" src/pages/
   fi
 
   pass "Content synced from blog-content"
@@ -190,7 +190,7 @@ fi
 # ── 10. Draft Post Exclusion Checks ───────────────────────────────────────────
 info "Verifying draft post exclusion..."
 # Find all draft posts in src/data/post (which is now synced)
-DRAFT_POSTS=$(grep -l "draft: true" src/data/post/*.md*)
+DRAFT_POSTS=$(find src/data/post -type f -name "*.md*" -exec grep -l "draft: true" {} + 2>/dev/null || true)
 
 if [[ -z "$DRAFT_POSTS" ]]; then
   info "No draft posts found to check."

@@ -12,6 +12,7 @@ import compress from 'astro-compress';
 import type { AstroIntegration } from 'astro';
 
 import astrowind from './vendor/integration';
+import blogThemeCore from './src/theme-integration';
 
 import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
 import remarkMath from 'remark-math';
@@ -68,6 +69,7 @@ export default defineConfig({
       Logger: 1,
     }),
 
+    blogThemeCore(),
     astrowind({
       config: './src/config.yaml',
     }),

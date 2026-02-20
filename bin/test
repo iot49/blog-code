@@ -53,7 +53,7 @@ info "Content structure check..."
 if [[ -d "../blog-content" ]]; then
   pass "Content repo found at ../blog-content"
   # Sync posts for testing
-  rsync -av --update --delete "../blog-content/data/post/" src/data/post/ >/dev/null
+  rsync -av --update --delete "../blog-content/src/data/post/" src/data/post/ >/dev/null
 else
   warn "Content repo NOT found at ../blog-content (will use local samples)"
 fi
@@ -114,7 +114,7 @@ fi
 # ── 8. Draft Post Exclusion Checks ────────────────────────────────────────────
 info "Verifying draft post exclusion..."
 # Find all draft posts in src/data/post
-DRAFT_POSTS=$(grep -l "draft: true" src/data/post/*.md*)
+DRAFT_POSTS=$(find src/data/post -type f -name "*.md*" -exec grep -l "draft: true" {} + 2>/dev/null || true)
 
 if [[ -z "$DRAFT_POSTS" ]]; then
   warn "No draft posts found to check."
