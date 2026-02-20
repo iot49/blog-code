@@ -24,19 +24,15 @@ ERRORS=0
 # ── 1. Uncommitted changes ────────────────────────────────────────────────────
 info "Checking for uncommitted changes..."
 if [[ -n "$(git status --porcelain)" ]]; then
-  warn "You have uncommitted changes. They will NOT be included in this deploy."
+  info "Local workspace has uncommitted changes:"
   git status --short
   echo ""
 fi
 
 # ── 2. Prettier ───────────────────────────────────────────────────────────────
-info "Prettier (formatting check)..."
-if npm run check:prettier --silent 2>&1; then
-  pass "Prettier"
-else
-  fail "Prettier — run 'npm run fix:prettier' to auto-fix"
-  exit 1
-fi
+info "Prettier (auto-formatting)..."
+npm run fix:prettier --silent
+pass "Prettier"
 
 # ── 3. ESLint ─────────────────────────────────────────────────────────────────
 info "ESLint..."

@@ -15,20 +15,60 @@ const {
 // We'll use a client-side script to get the current URL
 ---
 
-<button id="translate-button" class={className} aria-label="Translate this page" title="Translate this page">
-  <Icon name="tabler:language" class="w-5 h-5" />
-</button>
+<div class="flex items-center gap-1">
+  <button
+    id="translate-button-en"
+    class:list={[className, 'px-2 py-1 text-xs font-semibold uppercase']}
+    aria-label="Translate to English"
+    title="Translate to English"
+    data-lang="en"
+  >
+    EN
+  </button>
+  <button
+    id="translate-button-de"
+    class:list={[className, 'px-2 py-1 text-xs font-semibold uppercase']}
+    aria-label="Translate to German"
+    title="Translate to German"
+    data-lang="de"
+  >
+    DE
+  </button>
+  <button
+    id="translate-button-fr"
+    class:list={[className, 'px-2 py-1 text-xs font-semibold uppercase']}
+    aria-label="Translate to French"
+    title="Translate to French"
+    data-lang="fr"
+  >
+    FR
+  </button>
+  <button id="translate-button" class={className} aria-label="Translate this page" title="Translate this page">
+    <Icon name="tabler:language" class="w-5 h-5" />
+  </button>
+</div>
 
 <script>
   function attachTranslate() {
-    const translateButton = document.getElementById('translate-button');
-    if (translateButton) {
-      translateButton.addEventListener('click', () => {
+    const defaultBtn = document.getElementById('translate-button');
+    const langBtns = document.querySelectorAll<HTMLButtonElement>('[data-lang]');
+
+    if (defaultBtn) {
+      defaultBtn.addEventListener('click', () => {
         const currentUrl = window.location.href;
         const translateUrl = `https://translate.google.com/translate?u=${encodeURIComponent(currentUrl)}`;
         window.open(translateUrl, '_blank');
       });
     }
+
+    langBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        const currentUrl = window.location.href;
+        const translateUrl = `https://translate.google.com/translate?sl=auto&tl=${lang}&u=${encodeURIComponent(currentUrl)}`;
+        window.open(translateUrl, '_blank');
+      });
+    });
   }
 
   // Handle initial load and View Transitions

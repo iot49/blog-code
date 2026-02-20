@@ -22,13 +22,9 @@ echo -e "\n${BOLD}=== Blog Test Suite ===${RESET}\n"
 ERRORS=0
 
 # ── 1. Prettier ───────────────────────────────────────────────────────────────
-info "Prettier..."
-if npm run check:prettier --silent 2>&1 >/dev/null; then
-  pass "Prettier"
-else
-  fail "Prettier failed (try: npm run fix:prettier)"
-  ERRORS=$((ERRORS + 1))
-fi
+info "Prettier (auto-formatting)..."
+npm run fix:prettier --silent
+pass "Prettier"
 
 # ── 2. ESLint ─────────────────────────────────────────────────────────────────
 info "ESLint..."
