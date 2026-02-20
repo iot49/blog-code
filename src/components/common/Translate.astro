@@ -55,6 +55,7 @@ const {
 
     if (defaultBtn) {
       defaultBtn.addEventListener('click', () => {
+        if (window.location.hostname.includes('translate.goog')) return;
         const currentUrl = window.location.href;
         const translateUrl = `https://translate.google.com/translate?u=${encodeURIComponent(currentUrl)}`;
         window.open(translateUrl, '_blank');
@@ -64,9 +65,17 @@ const {
     langBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const lang = btn.dataset.lang;
-        const currentUrl = window.location.href;
-        const translateUrl = `https://translate.google.com/translate?sl=auto&tl=${lang}&u=${encodeURIComponent(currentUrl)}`;
-        window.open(translateUrl, '_blank');
+        const url = new URL(window.location.href);
+
+        if (url.hostname.includes('translate.goog')) {
+          // Already on a translated page, just change the target language
+          url.searchParams.set('_x_tr_tl', lang || '');
+          window.location.href = url.toString();
+        } else {
+          // New translation, open in a new tab
+          const translateUrl = `https://translate.google.com/translate?sl=auto&tl=${lang}&u=${encodeURIComponent(window.location.href)}`;
+          window.open(translateUrl, '_blank');
+        }
       });
     });
   }
