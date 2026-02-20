@@ -6,6 +6,7 @@ accessLevel: friends
 topic: blog
 tags:
   - test
+  - access
 excerpt: 'This is a friends-only post.'
 ---
 

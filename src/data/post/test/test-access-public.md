@@ -7,6 +7,7 @@ topic: blog
 excerpt: 'This is a public post.'
 tags:
   - test
+  - access
 ---
 
 This is a public post accessible to everyone.
