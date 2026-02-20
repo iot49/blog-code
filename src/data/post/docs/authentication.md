@@ -24,7 +24,7 @@ The blog uses a path-based security model:
 
 1.  Cloudflare account with an active website (Zone).
 2.  Domain already configured on Cloudflare.
-3.  [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-setup/) installed.
+3.  [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed.
 4.  Cloudflare API token with the following permissions:
     - **Account** > **Access: Organizations and Groups** > **Edit**
     - **Account** > **Access: Apps and Policies** > **Edit**
@@ -55,5 +55,5 @@ All aliases deliver to the same inbox, but Cloudflare treats them as distinct id
 
 ## Resources
 
-- [Cloudflare Access Documentation](https://developers.cloudflare.com/cloudflare-one/identity/access/)
+- [Cloudflare Access Documentation](https://developers.cloudflare.com/cloudflare-one/policies/access/)
 - [Wrangler Access Commands](https://developers.cloudflare.com/workers/wrangler/commands/#access)

@@ -1,6 +1,6 @@
 site:
-  name: Your-Website
-  site: 'https://your-website.com'
+  name: "Bernhard's Blog"
+  site: 'https://blog.boser-guyon.org'
   base: '/'
   trailingSlash: false
 
@@ -9,14 +9,14 @@ site:
 # Default SEO metadata
 metadata:
   title:
-    default: Your-Website
-    template: '%s — Your-Website'
+    default: "Bernhard's Blog"
+    template: '%s — "Bernhard''s Blog"'
   description: 'Personal blog by Your-Name — travel, coding, and more.'
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: Your-Website
+    site_name: "Bernhard's Blog"
     images:
       - url: '~/assets/images/default.png'
         width: 1200

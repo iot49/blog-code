@@ -25,4 +25,4 @@ Welcome to the technical documentation for this blog. This series of posts cover
 
 ## Architecture
 
-This blog is built with **Astro 5.0**, leveraging its static site generation (SSG) capabilities for extreme performance and security. Content is separate from code, allowing for private draft management and hierarchical access control.
+This blog is derived from the [AstroWind template](https://astro.build/themes/details/astrowind/) and built with **Astro 5.0**, leveraging its static site generation (SSG) capabilities for good performance and security. Content is separate from code, allowing for private draft management and hierarchical access control.

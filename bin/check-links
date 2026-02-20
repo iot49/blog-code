@@ -10,14 +10,14 @@ Usage:
 """
 
 import argparse
-from typing import Optional
 import re
 import subprocess
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Optional
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +36,7 @@ SKIP_DOMAINS = {
     "instagram.com",
     "www.instagram.com",
     "web.archive.org",  # slow / rate-limited
+    "dash.cloudflare.com",  # blocks automated checks (403)
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -164,9 +165,11 @@ def main():
     print(f"  Found {total} unique external URL(s)\n")
 
     # ── Check links ────────────────────────────────────────────────────────────
-    info(f"Checking links ({args.workers} parallel workers, {args.timeout}s timeout)...\n")
+    info(
+        f"Checking links ({args.workers} parallel workers, {args.timeout}s timeout)...\n"
+    )
 
-    broken: list[tuple[str, str, set[str]]] = []   # (url, reason, sources)
+    broken: list[tuple[str, str, set[str]]] = []  # (url, reason, sources)
     skipped: list[str] = []
     ok_count = 0
 
