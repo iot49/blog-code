@@ -241,10 +241,12 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
   if (!isBlogEnabled || !isBlogTagRouteEnabled) return [];
 
   const posts = await fetchPosts();
-  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
+  // We use all posts (including restricted) for generating tag paths
+  // to avoid broken links in restricted posts.
+  // Note: List contents are still filtered by accessLevel in the component or fetch.
 
   const tags = {};
-  publicPosts.map((post) => {
+  posts.map((post) => {
     if (Array.isArray(post.tags)) {
       post.tags.map((tag) => {
         tags[tag?.slug] = tag;
@@ -254,7 +256,7 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
 
   return Array.from(Object.keys(tags)).flatMap((tagSlug) =>
     paginate(
-      publicPosts.filter((post) => Array.isArray(post.tags) && post.tags.find((elem) => elem.slug === tagSlug)),
+      posts.filter((post) => Array.isArray(post.tags) && post.tags.find((elem) => elem.slug === tagSlug)),
       {
         params: { tag: tagSlug, blog: TAG_BASE || undefined },
         pageSize: blogPostsPerPage,

@@ -3,14 +3,13 @@ import { fetchPosts } from '~/utils/blog';
 
 const allPosts = await fetchPosts();
 
-const searchData = allPosts
-  .filter((post) => post.accessLevel === 'public')
-  .map((post) => ({
-    title: post.title,
-    excerpt: post.excerpt || '',
-    permalink: post.permalink,
-    tags: post.tags?.map((tag) => tag.title) || [],
-  }));
+const searchData = allPosts.map((post) => ({
+  title: post.title,
+  excerpt: post.accessLevel === 'public' ? post.excerpt || '' : '',
+  permalink: post.permalink,
+  tags: post.tags?.map((tag) => tag.title) || [],
+  accessLevel: post.accessLevel,
+}));
 
 const searchDataJson = JSON.stringify(searchData);
 ---
@@ -30,6 +29,7 @@ const searchDataJson = JSON.stringify(searchData);
     excerpt: string;
     permalink: string;
     tags: string[];
+    accessLevel: string;
   }
 
   const searchData: SearchItem[] = JSON.parse(container.dataset.search ?? '[]');
@@ -63,7 +63,14 @@ const searchDataJson = JSON.stringify(searchData);
       .map(
         (result) => `
       <a href="${result.item.permalink}" class="search-result-item">
-        <strong>${result.item.title}</strong>
+        <div class="flex items-center gap-2">
+          <strong>${result.item.title}</strong>
+          ${
+            result.item.accessLevel !== 'public'
+              ? `<span class="text-gray-400" title="Protected content"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tabler-icon tabler-icon-lock"><path d="M5 11m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"></path><path d="M12 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M8 11v-4a4 4 0 1 1 8 0v4"></path></svg></span>`
+              : ''
+          }
+        </div>
         ${result.item.excerpt ? `<p>${result.item.excerpt}</p>` : ''}
       </a>
     `

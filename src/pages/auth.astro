@@ -1,0 +1,20 @@
+---
+// This page is intentionally simple.
+// It is used as a protected path in Cloudflare Access to trigger the login flow.
+// Once authenticated, it redirects the user back to the home page or a specific destination.
+
+const { searchParams } = Astro.url;
+const redirectTo = searchParams.get('redirect') || '/';
+---
+
+<html>
+  <head>
+    <meta http-equiv="refresh" content={`0;url=${redirectTo}`} />
+  </head>
+  <body>
+    <p>Redirecting to <a href={redirectTo}>{redirectTo}</a>...</p>
+    <script define:vars={{ redirectTo }}>
+      window.location.href = redirectTo;
+    </script>
+  </body>
+</html>

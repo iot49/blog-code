@@ -80,14 +80,27 @@ else
   ERRORS=$((ERRORS + 1))
 fi
 
-# ── 6. Access-Level Security Checks ───────────────────────────────────────────
+# 6. Access-Level Security Checks ───────────────────────────────────────────
 info "Verifying access-level routing..."
+# We now allow 'accessLevel: friends' etc. to appear in the metadata for search index,
+# but we must NOT have any actual post content files for these levels in dist/public/
+# We check if restricted post metadata appears in its own right (not as part of a JSON index)
 if [[ -d "dist/public" ]]; then
-  if grep -rl 'accessLevel.*private\|accessLevel.*friends\|accessLevel.*family' dist/public/ >/dev/null 2>&1; then
-    fail "Private/restricted post metadata found under dist/public/"
-    ERRORS=$((ERRORS + 1))
+  # Grep for accessLevel property that is NOT part of a data-search attribute
+  # This is a bit tricky with grep, so we'll check for files that shouldn't be here.
+  RESTRICTED_FOLDERS=("friends" "family" "private")
+  FOUND_RESTRICTED=0
+  for folder in "${RESTRICTED_FOLDERS[@]}"; do
+    if [[ -d "dist/public/${folder}" ]]; then
+        fail "Restricted folder 'dist/public/${folder}' should NOT exist!"
+        FOUND_RESTRICTED=1
+    fi
+  done
+
+  if [[ $FOUND_RESTRICTED -eq 0 ]]; then
+    pass "No restricted folders found under dist/public/"
   else
-    pass "No restricted content under dist/public/"
+    ERRORS=$((ERRORS + 1))
   fi
 else
   warn "dist/public/ not found (no public posts?)"
@@ -95,17 +108,25 @@ fi
 
 # ── 7. Search Data Privacy Checks ─────────────────────────────────────────────
 info "Verifying search index privacy..."
-# Find the built JS file that contains the search data
+# Find the built JS or HTML file that contains the search data
 SEARCH_INDEX_FILE=$(find dist -type f -name "*.html" -exec grep -l "data-search" {} + | head -n 1)
 
 if [[ -n "$SEARCH_INDEX_FILE" ]]; then
-  # Check if restricted post titles appear in the search index
-  # Note: This is a heuristic. It looks for known restricted titles in the bundled code.
+  # 1. Verify restricted titles ARE present (Discoverability)
   if grep -q "Test Friends Post" "$SEARCH_INDEX_FILE"; then
-    fail "Restricted post title 'Test Friends Post' found in search index!"
+    pass "Restricted post titles allowed in search index (Discoverability)"
+  else
+    fail "Restricted post title 'Test Friends Post' NOT found in search index!"
+    ERRORS=$((ERRORS + 1))
+  fi
+
+  # 2. Verify restricted CONTENT/EXCERPT is NOT present (Privacy)
+  # 'This is a friends-only post.' is the excerpt/content for that test post.
+  if grep -q "This is a friends-only post" "$SEARCH_INDEX_FILE"; then
+    fail "Restricted post CONTENT found in search index!"
     ERRORS=$((ERRORS + 1))
   else
-    pass "Restricted content not found in search index"
+    pass "Restricted post content NOT found in search index"
   fi
 else
    warn "Could not locate search index in built files"

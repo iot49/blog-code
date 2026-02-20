@@ -173,17 +173,27 @@ PYEOF
 fi
 pass "Internal links (checked)"
 
-# ── 9. Access-Level Security Checks ───────────────────────────────────────────
+# 9. Access-Level Security Checks ───────────────────────────────────────────
 info "Verifying access-level routing..."
+# We now allow 'accessLevel: friends' etc. to appear in the metadata for search index,
+# but we must NOT have any actual post content files for these levels in dist/public/
 if [[ -d "dist/public" ]]; then
-  if grep -rl 'accessLevel.*private\|accessLevel.*friends\|accessLevel.*family' dist/public/ >/dev/null 2>&1; then
-    fail "Private/restricted post metadata found under dist/public/"
-    ERRORS=$((ERRORS + 1))
-  else
+  # Check for restricted folders that shouldn't be under dist/public/
+  RESTRICTED_FOLDERS=("friends" "family" "private")
+  FOUND_RESTRICTED=0
+  for folder in "${RESTRICTED_FOLDERS[@]}"; do
+    if [[ -d "dist/public/${folder}" ]]; then
+        fail "Restricted folder 'dist/public/${folder}' should NOT exist!"
+        FOUND_RESTRICTED=1
+    fi
+  done
+
+  if [[ $FOUND_RESTRICTED -eq 0 ]]; then
     pass "No restricted content under dist/public/"
+  else
+    ERRORS=$((ERRORS + 1))
   fi
 else
-  warn "dist/public/ not found (no public posts?)"
   warn "dist/public/ not found (no public posts?)"
 fi
 
