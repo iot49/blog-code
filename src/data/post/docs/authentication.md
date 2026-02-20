@@ -9,7 +9,9 @@ draft: false
 tags: ['doc', 'setup', 'authentication', 'cloudflare', 'zero-trust']
 ---
 
-Cloudflare Access provides Zero Trust authentication for your blog, allowing you to protect content based on hierarchical access levels (`public`, `friends`, `family`, `private`) without managing a complex user database.
+Cloudflare Access provides Zero Trust authentication for your blog, allowing you to protect content based on hierarchical access levels (`public`, `friends`, `family`, `private`) without custom server-side code.
+
+The file `access-list.yaml` is used to configure the access levels for authorized email addresses.
 
 ## Architecture
 
@@ -24,10 +26,12 @@ The blog uses a path-based security model:
 
 1.  Cloudflare account with an active website (Zone).
 2.  Domain already configured on Cloudflare.
-3.  [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed.
+3.  [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-setup/) installed.
 4.  Cloudflare API token with the following permissions:
     - **Account** > **Access: Organizations and Groups** > **Edit**
     - **Account** > **Access: Apps and Policies** > **Edit**
+    - **Zone** > **Access: Apps and Policies** > **Edit**
+    - **Zone** > **Zone** > **Read**
 
 ## Automated Setup
 
@@ -40,7 +44,7 @@ export CF_ACCOUNT_ID="your-account-id"
 export DOMAIN="your-blog.com"
 
 # 2. Run the sync script
-./infra/cloudflare-access.sh
+../blog-code/infra/cloudflare-access.sh
 ```
 
 ## Testing with Gmail Aliases
@@ -55,5 +59,5 @@ All aliases deliver to the same inbox, but Cloudflare treats them as distinct id
 
 ## Resources
 
-- [Cloudflare Access Documentation](https://developers.cloudflare.com/cloudflare-one/policies/access/)
+- [Cloudflare Access Documentation](https://developers.cloudflare.com/cloudflare-one/identity/access/)
 - [Wrangler Access Commands](https://developers.cloudflare.com/workers/wrangler/commands/#access)

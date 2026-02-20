@@ -75,3 +75,13 @@ To build the site for production:
 ```
 
 This script syncs your latest content, builds the static site, and prepares it for Cloudflare Pages.
+
+### Check Links
+
+To check for broken external links:
+
+```bash
+./bin/check-links
+```
+
+Run this infrequently to avoid rate limiting by some providers.
