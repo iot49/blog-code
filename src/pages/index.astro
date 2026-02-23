@@ -2,9 +2,10 @@
 import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
+import { METADATA, SITE } from 'astrowind:config';
 
 const metadata = {
-  title: 'My Site',
+  title: METADATA.title?.default || SITE.name,
   ignoreTitleTemplate: true,
 };
 ---
@@ -18,10 +19,10 @@ const metadata = {
     ]}
   >
     <Fragment slot="title">
-      Welcome to <span class="text-accent dark:text-white">My Site</span>
+      Welcome to <span class="text-accent dark:text-white">{SITE.name}</span>
     </Fragment>
 
-    <Fragment slot="subtitle"> A personal blog about blogging. </Fragment>
+    <Fragment slot="subtitle"> {METADATA.description} </Fragment>
   </Hero>
 
   <!-- Latest Posts -->
