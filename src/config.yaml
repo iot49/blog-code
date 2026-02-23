@@ -45,6 +45,8 @@ apps:
     list:
       isEnabled: true
       pathname: 'blog' # Blog main path, you can change this to "articles" (/articles)
+      title: 'The Blog'
+      subtitle: "Bernhard's personal blog with news, tutorials, and thoughts on model railroading, software, and adventure."
       robots:
         index: true
 

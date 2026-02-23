@@ -2,6 +2,8 @@
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 
+import { SITE } from 'astrowind:config';
+
 const metadata = {
   title: 'Terms and Conditions',
 };
@@ -13,7 +15,7 @@ const metadata = {
   <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 lg:py-20 max-w-4xl">
     <div class="prose prose-lg dark:prose-invert max-w-none">
       <p>
-        Welcome to Boser-Guyon. By accessing this website, you agree to comply with and be bound by the following terms
+        Welcome to {SITE.name}. By accessing this website, you agree to comply with and be bound by the following terms
         and conditions of use.
       </p>
 

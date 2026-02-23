@@ -47,6 +47,8 @@ export interface AppBlogConfig {
   list: {
     isEnabled: boolean;
     pathname: string;
+    title?: string;
+    subtitle?: string;
     robots: {
       index: boolean;
       follow: boolean;
@@ -146,6 +148,8 @@ const getAppBlog = (config: Config) => {
     list: {
       isEnabled: true,
       pathname: 'blog',
+      title: 'The Blog',
+      subtitle: '',
       robots: {
         index: true,
         follow: true,
