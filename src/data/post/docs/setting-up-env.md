@@ -1,6 +1,7 @@
 ---
-publishDate: 2026-02-19
+publishDate: 2026-01-01
 title: 'Setting up Environment Variables'
+author: Gemini
 excerpt: 'A guide on configuring the .env file for the blog and defining the necessary Cloudflare API permissions.'
 topic: 'blog'
 tags:

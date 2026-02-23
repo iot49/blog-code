@@ -1,6 +1,7 @@
 ---
 title: 'Setting up Giscus Comments'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
+author: Gemini
 excerpt: 'How to integrate GitHub Discussions-backed comments into your blog posts.'
 image: https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2600
 topic: blog

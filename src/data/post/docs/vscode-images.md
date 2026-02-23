@@ -1,6 +1,7 @@
 ---
 title: 'VSCode Image Paste Support'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
+author: Gemini
 excerpt: "Learn how to use VSCode's native image paste feature for a seamless authoring experience."
 image: https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=2600
 topic: blog

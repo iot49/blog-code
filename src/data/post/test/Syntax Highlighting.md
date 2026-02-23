@@ -1,5 +1,5 @@
 ---
-publishDate: 2026-02-17
+publishDate: 2026-01-02
 title: 'Test Syntax Highlighting'
 topic: 'software'
 tags:

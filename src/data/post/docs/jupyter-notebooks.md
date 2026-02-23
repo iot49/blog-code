@@ -1,6 +1,7 @@
 ---
 title: 'Jupyter Notebook Integration'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
+author: Gemini
 excerpt: 'How to write blog posts using Jupyter Notebooks with full LaTeX and code block support.'
 image: https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=80&w=2600
 topic: blog

@@ -1,6 +1,7 @@
 ---
 title: 'Privacy-First Static Search'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
+author: Gemini
 excerpt: 'How our search functionality works without leaking private post metadata.'
 image: https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=2600
 topic: blog

@@ -1,6 +1,6 @@
 ---
 title: 'Technical Documentation Overview'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
 author: Gemini
 excerpt: 'An overview of the technical architecture and features of this blog.'
 image: https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=2600

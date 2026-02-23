@@ -16,7 +16,9 @@ import blogThemeCore from './src/theme-integration';
 
 import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
 import remarkMath from 'remark-math';
+import { remarkAlert } from 'remark-github-blockquote-alert';
 import rehypeKatex from 'rehype-katex';
+import rehypeFigureTitle from 'rehype-figure-title';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -80,8 +82,11 @@ export default defineConfig({
   },
 
   markdown: {
-    remarkPlugins: [readingTimeRemarkPlugin, remarkMath],
-    rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin, rehypeKatex],
+    shikiConfig: {
+      theme: 'github-light',
+    },
+    remarkPlugins: [readingTimeRemarkPlugin, remarkMath, remarkAlert],
+    rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin, rehypeKatex, [rehypeFigureTitle, { className: 'figure-caption' }]],
   },
 
   vite: {

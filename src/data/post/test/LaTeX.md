@@ -1,5 +1,5 @@
 ---
-publishDate: 2026-02-17
+publishDate: 2026-01-02
 title: 'Welcome to the Blog - LaTeX Test'
 excerpt: 'Testing LaTeX equation rendering with KaTeX in our new AstroWind blog'
 topic: 'blog'

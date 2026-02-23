@@ -1,6 +1,7 @@
 ---
 title: 'Installation & Setup Guide'
-publishDate: 2026-02-19
+publishDate: 2026-01-01
+author: Gemini
 excerpt: 'Get your blog up and running locally for development and content authoring.'
 image: https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=2600
 topic: blog

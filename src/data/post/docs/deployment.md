@@ -1,7 +1,7 @@
 ---
 title: 'Continuous Deployment Pipeline'
-publishDate: 2026-02-19
-author: Bernhard
+publishDate: 2026-01-01
+author: Gemini
 excerpt: 'How we use bin/deploy to safely publish content while protecting private posts.'
 image: https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=2600
 topic: blog
