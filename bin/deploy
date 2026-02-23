@@ -104,6 +104,12 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
     mkdir -p src/data/post/images
     rsync -av --update "$BLOG_CONTENT_DIR/src/assets/images/" src/data/post/images/
   fi
+
+  # Sync favicons
+  if [[ -d "$BLOG_CONTENT_DIR/src/assets/favicons" ]]; then
+    mkdir -p src/assets/favicons
+    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/favicons/" src/assets/favicons/
+  fi
   
   # Handle VSCode pasted images in posts
   # If there is a src/data/post/images directory, it might contain pasted images
