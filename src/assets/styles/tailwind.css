@@ -92,7 +92,6 @@
   margin-top: 0;
 }
 
-
 /* Light gray background and slightly darker gray border for code blocks */
 .prose pre.astro-code {
   background-color: #f3f4f6 !important; /* Tailwind gray-100 */

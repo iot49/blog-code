@@ -86,7 +86,12 @@ export default defineConfig({
       theme: 'github-light',
     },
     remarkPlugins: [readingTimeRemarkPlugin, remarkMath, remarkAlert],
-    rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin, rehypeKatex, [rehypeFigureTitle, { className: 'figure-caption' }]],
+    rehypePlugins: [
+      responsiveTablesRehypePlugin,
+      lazyImagesRehypePlugin,
+      rehypeKatex,
+      [rehypeFigureTitle, { className: 'figure-caption' }],
+    ],
   },
 
   vite: {
