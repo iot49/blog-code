@@ -23,3 +23,11 @@ pnpm-debug.log*
 pnpm-lock.yaml
 
 .astro
+
+# Synced from blog-content
+/src/data/post/
+/src/assets/images/
+/src/assets/favicons/
+/src/config.yaml
+/src/navigation.ts
+/access-list.yaml
