@@ -4,5 +4,16 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Sync Content from blog-content
+BLOG_CONTENT_DIR="${BLOG_CONTENT_DIR:-../blog-content}"
+
+if [[ -d "$BLOG_CONTENT_DIR" ]]; then
+  echo "Syncing content from $BLOG_CONTENT_DIR..."
+  rsync -av --update --delete "$BLOG_CONTENT_DIR/src/data/post/" src/data/post/
+  if [[ -f "$BLOG_CONTENT_DIR/src/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/config.yaml" src/; fi
+  if [[ -f "$BLOG_CONTENT_DIR/src/navigation.ts" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/navigation.ts" src/; fi
+  if [[ -d "$BLOG_CONTENT_DIR/src/pages" ]]; then rsync -av --update "$BLOG_CONTENT_DIR/src/pages/" src/pages/; fi
+fi
+
 # Run dev server
 npm run dev "$@"
