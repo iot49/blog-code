@@ -1,6 +1,7 @@
 ---
 title: 'Technical Documentation Overview'
 publishDate: 2026-02-19
+author: Gemini
 excerpt: 'An overview of the technical architecture and features of this blog.'
 image: https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=2600
 topic: blog
@@ -25,4 +26,4 @@ Welcome to the technical documentation for this blog. This series of posts cover
 
 ## Architecture
 
-This blog is derived from the [AstroWind template](https://astro.build/themes/details/astrowind/) and built with **Astro 5.0**, leveraging its static site generation (SSG) capabilities for good performance and security. Content is separate from code, allowing for private draft management and hierarchical access control.
+This blog is built with **Astro 5.0**, leveraging its static site generation (SSG) capabilities for extreme performance and security. Content is separate from code, allowing for private draft management and hierarchical access control.

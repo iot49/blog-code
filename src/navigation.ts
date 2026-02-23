@@ -24,12 +24,9 @@ export const headerData = {
 
 export const footerData = {
   links: [],
-  secondaryLinks: [
-    { text: 'Terms', href: getPermalink('/terms') },
-    { text: 'Privacy Policy', href: getPermalink('/privacy') },
-  ],
+  secondaryLinks: [],
   socialLinks: [],
   footNote: `
-    Boser-Guyon · All rights reserved.
+    Boser-Guyon Web · All rights reserved.
   `,
 };

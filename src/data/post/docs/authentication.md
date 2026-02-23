@@ -1,6 +1,7 @@
 ---
 title: 'Cloudflare Access Authentication'
 publishDate: 2026-02-19
+author: Gemini
 excerpt: 'Setting up Zero Trust hierarchical access control for your blog content.'
 image: https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2600
 topic: blog
