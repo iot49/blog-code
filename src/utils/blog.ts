@@ -117,7 +117,7 @@ const load = async function (): Promise<Array<Post>> {
       }
       return b.publishDate.valueOf() - a.publishDate.valueOf();
     })
-    .filter((post) => !post.draft)
+    .filter((post) => import.meta.env.DEV || !post.draft)
     .filter((post) => allowedAccessLevels.includes(post.accessLevel || 'private'));
 
   return results;
