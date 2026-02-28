@@ -17,6 +17,10 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
     echo "Syncing pages from $BLOG_CONTENT_DIR/src/pages..."
     rsync -av "$BLOG_CONTENT_DIR/src/pages/" src/pages/
   fi
+  if [[ -d "$BLOG_CONTENT_DIR/src/components" ]]; then
+    echo "Syncing components from $BLOG_CONTENT_DIR/src/components..."
+    rsync -av "$BLOG_CONTENT_DIR/src/components/" src/components/
+  fi
   if [[ -d "$BLOG_CONTENT_DIR/src/assets/favicons" ]]; then
     mkdir -p src/assets/favicons
     rsync -av --update "$BLOG_CONTENT_DIR/src/assets/favicons/" src/assets/favicons/
