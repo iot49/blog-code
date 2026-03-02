@@ -38,12 +38,10 @@ Based on a thorough audit of `ARCHITECTURE.md` and the current codebase, the fol
     - member1@gmail.com
   ```
 - This file is the single source of truth. Any `accessLevel` value in a post's frontmatter that does **not** appear as a key in this YAML (and is not `public` or `auth`) makes that post inaccessible.
-
-#### [MODIFY] [src/content/config.ts](file:///Users/boser/Documents/personal/iot/blog-code/src/content/config.ts)
+#### [MODIFY] [src/content/config.ts](src/content/config.ts)
 
 - Keep `accessLevel: z.string().default('private')` (open string, not a fixed enum) so it can accept any key from the YAML config. Posts whose `accessLevel` is not in the YAML and is not `public`/`auth` are treated as inaccessible (no route generated).
-
-#### [MODIFY] [src/utils/blog.ts](file:///Users/boser/Documents/personal/iot/blog-code/src/utils/blog.ts)
+#### [MODIFY] [src/utils/blog.ts](src/utils/blog.ts)
 
 - Update `getStaticPathsBlogList` and post permalink generation to embed `accessLevel` in the URL: `/{accessLevel}/{slug}`.
 
@@ -64,8 +62,7 @@ Based on a thorough audit of `ARCHITECTURE.md` and the current codebase, the fol
 > Currently `Search.astro` bakes **all** post titles, excerpts, and permalinks into the HTML delivered to every visitor (including unauthenticated users). Private post metadata is leaked. An _excerpt_ is the short summary text from the `excerpt` frontmatter field — its content may reveal private information.
 >
 > **Images are NOT protected** by this approach: image files are served as static assets without Cloudflare Access policies, so a direct URL to an image in a private post is publicly reachable. Authors should be warned in the documentation to avoid embedding sensitive images in restricted posts.
-
-#### [MODIFY] [src/components/common/Search.astro](file:///Users/boser/Documents/personal/iot/blog-code/src/components/common/Search.astro)
+#### [MODIFY] [src/components/common/Search.astro](src/components/common/Search.astro)
 
 - Filter `fetchPosts()` to only include `public` posts in the static search index.
 - **Limitation (document this)**: Authenticated users (friends, family, etc.) will not see their non-public posts in search results. A future improvement could serve per-access-level JSON search indexes protected by Cloudflare Access policies, but this is out of scope for now.

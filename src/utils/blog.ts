@@ -26,10 +26,7 @@ const generatePermalink = async ({
   slug,
   accessLevel,
 }: {
-  id: string;
   slug: string;
-  publishDate: Date;
-  category: string | undefined;
   accessLevel: string;
 }) => {
   const permalink = `/${accessLevel}/${slug}`;
@@ -81,7 +78,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     slug: slug,
     accessLevel: accessLevel,
     pinned: pinned,
-    permalink: await generatePermalink({ id, slug, publishDate, category: category?.slug, accessLevel }),
+    permalink: await generatePermalink({ slug, accessLevel }),
 
     publishDate: publishDate,
     updateDate: updateDate,
@@ -176,7 +173,7 @@ export const findPostsByIds = async (ids: Array<string>): Promise<Array<Post>> =
     return r;
   }, []);
 
-  return foundPosts.filter((post) => post.accessLevel === 'public');
+  return foundPosts;
 };
 
 /** */
@@ -184,16 +181,14 @@ export const findLatestPosts = async ({ count }: { count?: number }): Promise<Ar
   const _count = count || 4;
   const posts = await fetchPosts();
 
-  return posts ? posts.filter((post) => post.accessLevel === 'public').slice(0, _count) : [];
+  return posts ? posts.slice(0, _count) : [];
 };
 
 /** */
 export const getStaticPathsBlogList = async ({ paginate }: { paginate: PaginateFunction }) => {
   if (!isBlogEnabled || !isBlogListRouteEnabled) return [];
   const posts = await fetchPosts();
-  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
-
-  return paginate(publicPosts, {
+  return paginate(posts, {
     params: { blog: BLOG_BASE || undefined },
     pageSize: blogPostsPerPage,
   });
@@ -215,18 +210,16 @@ export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: Pagin
   if (!isBlogEnabled || !isBlogCategoryRouteEnabled) return [];
 
   const posts = await fetchPosts();
-  const publicPosts = posts.filter((post) => post.accessLevel === 'public');
-
-  const categories = {};
-  publicPosts.map((post) => {
+  const categories: Record<string, Taxonomy> = {};
+  posts.forEach((post) => {
     if (post.category?.slug) {
-      categories[post.category?.slug] = post.category;
+      categories[post.category.slug] = post.category;
     }
   });
 
   return Array.from(Object.keys(categories)).flatMap((categorySlug) =>
     paginate(
-      publicPosts.filter((post) => post.category?.slug && categorySlug === post.category?.slug),
+      posts.filter((post) => post.category?.slug && categorySlug === post.category?.slug),
       {
         params: { category: categorySlug, blog: CATEGORY_BASE || undefined },
         pageSize: blogPostsPerPage,
@@ -245,11 +238,13 @@ export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFu
   // to avoid broken links in restricted posts.
   // Note: List contents are still filtered by accessLevel in the component or fetch.
 
-  const tags = {};
-  posts.map((post) => {
+  const tags: Record<string, Taxonomy> = {};
+  posts.forEach((post) => {
     if (Array.isArray(post.tags)) {
-      post.tags.map((tag) => {
-        tags[tag?.slug] = tag;
+      post.tags.forEach((tag) => {
+        if (tag?.slug) {
+          tags[tag.slug] = tag;
+        }
       });
     }
   });

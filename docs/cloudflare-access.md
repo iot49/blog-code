@@ -49,7 +49,7 @@ wrangler access application list
 
 ```bash
 wrangler access application create \
-  --name "Blog - Boser Guyon" \
+  --name "My Blog" \
   --domain "your-blog.com" \
   --session-duration "24h"
 ```
