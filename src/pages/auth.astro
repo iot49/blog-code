@@ -4,7 +4,9 @@
 // Once authenticated, it redirects the user back to the home page or a specific destination.
 
 const { searchParams } = Astro.url;
-const redirectTo = searchParams.get('redirect') || '/';
+const raw = searchParams.get('redirect') || '/';
+// Prevent open redirect: only allow relative paths, reject absolute URLs and protocol-relative URLs
+const redirectTo = (raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/';
 ---
 
 <html>
