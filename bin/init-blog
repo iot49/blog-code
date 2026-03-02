@@ -63,6 +63,12 @@ EOF
 mkdir -p "$TARGET_DIR/src/data/post"
 mkdir -p "$TARGET_DIR/src/assets/images"
 mkdir -p "$TARGET_DIR/src/assets/favicons"
+mkdir -p "$TARGET_DIR/public"
+
+cat << 'EOF' > "$TARGET_DIR/public/robots.txt"
+User-agent: *
+Disallow:
+EOF
 
 cat << 'EOF' > "$TARGET_DIR/src/pages/index.astro"
 ---
