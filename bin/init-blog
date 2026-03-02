@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This script generates a new, standalone blog content directory
+# that consumes blog-code as an NPM dependency.
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <target_directory>"
+    echo "Example: $0 ../my-new-blog"
+    exit 1
+fi
+
+TARGET_DIR="$1"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -d "$TARGET_DIR" ]; then
+    echo "Error: Directory '$TARGET_DIR' already exists."
+    exit 1
+fi
+
+echo "🚀 Creating new blog at $TARGET_DIR..."
+mkdir -p "$TARGET_DIR"
+
+# 1. Boilerplate package.json
+cat << 'EOF' > "$TARGET_DIR/package.json"
+{
+  "name": "my-new-blog",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check:astro": "astro check"
+  },
+  "dependencies": {
+    "astro": "^5.1.0",
+    "blog-theme-core": "file:../blog-code"
+  }
+}
+EOF
+
+# 2. Boilerplate astro.config.ts
+cat << 'EOF' > "$TARGET_DIR/astro.config.ts"
+import { defineConfig } from 'astro/config';
+import themeConfig from 'blog-theme-core/astro.config.ts';
+
+const config = { ...themeConfig };
+
+// Required to make Vite fallback to the theme directory for missing files
+config.vite = config.vite || {};
+config.vite.server = config.vite.server || {};
+config.vite.server.fs = config.vite.server.fs || {};
+config.vite.server.fs.allow = [
+  ...(config.vite.server.fs.allow || []),
+  '../blog-code'
+];
+
+export default defineConfig(config);
+EOF
+
+# 3. Required architecture files
+mkdir -p "$TARGET_DIR/src/data/post"
+mkdir -p "$TARGET_DIR/src/assets/images"
+mkdir -p "$TARGET_DIR/src/assets/favicons"
+
+cat << 'EOF' > "$TARGET_DIR/src/pages/index.astro"
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+
+const metadata = {
+  title: 'My Custom Blog Home',
+  ignoreTitleTemplate: true,
+};
+---
+
+<Layout metadata={metadata}>
+  <Hero>
+    <Fragment slot="title">
+      Welcome to the Starter!
+    </Fragment>
+    <Fragment slot="subtitle">
+      This is a custom landing page that overrides the theme's default `/index` route.
+    </Fragment>
+  </Hero>
+</Layout>
+EOF
+
+cat << 'EOF' > "$TARGET_DIR/src/navigation.ts"
+// Navigation configuration
+export const headerData = {
+  links: [
+    { text: 'Home', href: '/' },
+    { text: 'Blog', href: '/blog' },
+  ],
+};
+export const footerData = {
+  links: [],
+  secondaryLinks: [],
+  socialLinks: [],
+  footNote: 'Theme powered by Astro',
+};
+EOF
+
+cat << 'EOF' > "$TARGET_DIR/src/config.yaml"
+# Site configuration override
+site:
+  name: "My Custom Blog"
+  site: "https://example.com"
+  base: "/"
+  trailingSlash: false
+
+metadata:
+  title:
+    default: "My Custom Blog"
+    template: "%s — My Custom Blog"
+
+apps:
+  blog:
+    isEnabled: true
+    postsPerPage: 10
+EOF
+
+cat << 'EOF' > "$TARGET_DIR/access-list.yaml"
+accessLevel:
+  - public
+  - auth
+EOF
+
+cat << 'EOF' > "$TARGET_DIR/.gitignore"
+node_modules/
+dist/
+.astro/
+.DS_Store
+.env*
+.venv/
+EOF
+
+# 4. Sample Public Post
+cat << 'EOF' > "$TARGET_DIR/src/data/post/hello-world.md"
+---
+publishDate: 2026-03-01T00:00:00Z
+title: Hello World
+excerpt: Welcome to my new blog!
+accessLevel: public
+tags: [blog, setup]
+categories: [General]
+---
+
+**Hello, world!** This is the first post on the new blog content architecture.
+EOF
+
+# 5. Sample Private Post
+cat << 'EOF' > "$TARGET_DIR/src/data/post/private-content.md"
+---
+publishDate: 2026-03-02T00:00:00Z
+title: Secret Notes
+excerpt: This is an example of restricted content.
+accessLevel: auth
+tags: [private]
+---
+
+This content is restricted to authorized users via the access-list and Cloudflare Access!
+EOF
+
+echo "✅ Blog initialized successfully at $TARGET_DIR!"
+echo ""
+echo "Next steps:"
+echo "  1. cd $TARGET_DIR"
+echo "  2. npm install"
+echo "  3. Create an .env file if Cloudflare/Giscus features are needed."
+echo "  4. npm run dev"

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This script now only tests the blog-code theme engine natively.
+# Actual blog deployment occurs from the blog-content directory.
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 RESET='\033[0m'
@@ -15,237 +17,43 @@ cd "$REPO_ROOT"
 pass() { echo -e "${GREEN}✓${RESET} $1"; }
 fail() { echo -e "${RED}✗${RESET} $1"; }
 info() { echo -e "${CYAN}▶${RESET} $1"; }
-warn() { echo -e "${YELLOW}⚠${RESET} $1"; }
 
-echo -e "\n${BOLD}=== Pre-deploy checks ===${RESET}\n"
+echo -e "\n${BOLD}=== Testing blog-code theme engine ===${RESET}\n"
 
 ERRORS=0
 
-# ── 1. Uncommitted changes ────────────────────────────────────────────────────
-info "Checking for uncommitted changes..."
-if [[ -n "$(git status --porcelain)" ]]; then
-  info "Local workspace has uncommitted changes:"
-  git status --short
-  echo ""
-fi
-
-# ── 2. Sync Content from blog-content ─────────────────────────────────────────
-info "Syncing content..."
-BLOG_CONTENT_DIR="${BLOG_CONTENT_DIR:-../blog-content}"
-
-if [[ -d "$BLOG_CONTENT_DIR" ]]; then
-  info "Syncing from $BLOG_CONTENT_DIR..."
-  
-  # Sync posts
-  rsync -av --update --delete "$BLOG_CONTENT_DIR/src/data/post/" src/data/post/
-  
-  # Sync config and navigation
-  if [[ -f "$BLOG_CONTENT_DIR/src/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/config.yaml" src/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/src/navigation.ts" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/navigation.ts" src/; fi
-  if [[ -f "$BLOG_CONTENT_DIR/access-list.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/access-list.yaml" ./; fi
-  
-  # Sync assets
-  if [[ -d "$BLOG_CONTENT_DIR/src/assets/images" ]]; then
-    # Sync to src/assets/images (for global assets)
-    mkdir -p src/assets/images
-    rsync -av --update --delete "$BLOG_CONTENT_DIR/src/assets/images/" src/assets/images/
-  fi
-  if [[ -d "$BLOG_CONTENT_DIR/src/assets/favicons" ]]; then
-    mkdir -p src/assets/favicons
-    rsync -av --update --delete "$BLOG_CONTENT_DIR/src/assets/favicons/" src/assets/favicons/
-  fi
-  
-  # Handle VSCode pasted images in posts
-  # If there is a src/data/post/images directory, it might contain pasted images
-  if [[ -d "src/data/post/images" ]]; then
-    info "Consolidating post images to assets..."
-    mkdir -p src/assets/images
-    # Use -a to preserve structure, --update to skip newer local files
-    rsync -av --update "src/data/post/images/" src/assets/images/
-    
-    # Rewrite paths in Markdown files: ![...](images/...) -> ![...](../../assets/images/...)
-    # We do this on the local copies in src/data/post/
-    info "Rewriting image paths in local post copies..."
-    # macOS sed needs -i ''
-    find src/data/post -type f \( -name "*.md" -o -name "*.mdx" \) -exec sed -i '' 's|(\./images/|(../../assets/images/|g; s|(images/|(../../assets/images/|g' {} +
-  fi
-
-  # Sync pages if they exist
-  if [[ -d "$BLOG_CONTENT_DIR/src/pages" ]]; then
-    info "Syncing pages from $BLOG_CONTENT_DIR/src/pages..."
-    rsync -av "$BLOG_CONTENT_DIR/src/pages/" src/pages/
-  fi
-
-  pass "Content synced from blog-content"
-else
-  warn "Content dir $BLOG_CONTENT_DIR not found. Using local sample content."
-fi
-
-# ── 3. Prettier ───────────────────────────────────────────────────────────────
+# ── 1. Prettier ───────────────────────────────────────────────────────────────
 info "Prettier (auto-formatting)..."
 npm run fix:prettier --silent
 pass "Prettier"
 
-# ── 4. ESLint ─────────────────────────────────────────────────────────────────
+# ── 2. ESLint ─────────────────────────────────────────────────────────────────
 info "ESLint..."
 if npm run check:eslint --silent 2>&1; then
   pass "ESLint"
 else
   fail "ESLint — run 'npm run fix:eslint' to auto-fix where possible"
-  exit 1
+  ERRORS=$((ERRORS + 1))
 fi
 
-# ── 5. Astro type check ───────────────────────────────────────────────────────
+# ── 3. Astro type check ───────────────────────────────────────────────────────
 info "Astro type check..."
 if npm run check:astro --silent 2>&1; then
   pass "Astro type check"
 else
-  fail "Astro type check"
-  exit 1
-fi
-
-# ── 6. YAML frontmatter validation ────────────────────────────────────────────
-info "YAML frontmatter in posts..."
-YAML_ERRORS=0
-while IFS= read -r -d '' file; do
-  # Extract frontmatter between --- delimiters and validate with node
-  if ! node --input-type=module <<EOF 2>/dev/null
-import { readFileSync } from 'fs';
-import { load } from '${REPO_ROOT}/node_modules/js-yaml/dist/js-yaml.mjs';
-const content = readFileSync('${file}', 'utf8');
-const match = content.match(/^---\n([\s\S]*?)\n---/);
-if (match) load(match[1]);
-EOF
-  then
-    fail "Bad YAML frontmatter: $file"
-    YAML_ERRORS=$((YAML_ERRORS + 1))
-  fi
-done < <(find src/data/post -name "*.md" -o -name "*.mdx" | tr '\n' '\0')
-
-if [[ $YAML_ERRORS -eq 0 ]]; then
-  pass "YAML frontmatter"
-else
-  fail "$YAML_ERRORS YAML frontmatter errors found"
-  exit 1
-fi
-
-
-# ── 7. Build ──────────────────────────────────────────────────────────────────
-info "Production build..."
-if npm run build --silent 2>&1; then
-  pass "Build"
-else
-  fail "Build failed"
-  exit 1
-fi
-
-# ── 8. Broken internal links (basic check on built output) ────────────────────
-info "Checking for broken internal links in built output..."
-LINK_ERRORS=0
-if [[ -d dist ]]; then
-  while IFS= read -r -d '' html; do
-    # Use Python to extract internal hrefs (works on macOS and Linux)
-    python3 - "$html" "$REPO_ROOT/dist" <<'PYEOF'
-import sys, re
-from pathlib import Path
-
-html_file = Path(sys.argv[1])
-dist = Path(sys.argv[2])
-
-content = html_file.read_text(errors='ignore')
-hrefs = re.findall(r'href="(/[^"#?]*)"', content)
-for link in hrefs:
-    candidates = [
-        dist / link.lstrip('/'),
-        dist / link.lstrip('/') / 'index.html',
-        Path(str(dist / link.lstrip('/')) + '.html'),
-    ]
-    if not any(c.exists() for c in candidates):
-        print(f"  Possibly broken: '{link}' in {html_file.resolve().relative_to(dist.resolve())}")
-PYEOF
-  done < <(find dist -name "*.html" -print0)
-fi
-pass "Internal links (checked)"
-
-# 9. Access-Level Security Checks ───────────────────────────────────────────
-info "Verifying access-level routing..."
-# We now allow 'accessLevel: friends' etc. to appear in the metadata for search index,
-# but we must NOT have any actual post content files for these levels in dist/public/
-if [[ -d "dist/public" ]]; then
-  # Check for restricted folders that shouldn't be under dist/public/
-  RESTRICTED_FOLDERS=("friends" "family" "private")
-  FOUND_RESTRICTED=0
-  for folder in "${RESTRICTED_FOLDERS[@]}"; do
-    if [[ -d "dist/public/${folder}" ]]; then
-        fail "Restricted folder 'dist/public/${folder}' should NOT exist!"
-        FOUND_RESTRICTED=1
-    fi
-  done
-
-  if [[ $FOUND_RESTRICTED -eq 0 ]]; then
-    pass "No restricted content under dist/public/"
-  else
-    ERRORS=$((ERRORS + 1))
-  fi
-else
-  warn "dist/public/ not found (no public posts?)"
-fi
-
-# ── 10. Draft Post Exclusion Checks ───────────────────────────────────────────
-info "Verifying draft post exclusion..."
-# Find all draft posts in src/data/post (which is now synced)
-DRAFT_POSTS=$(find src/data/post -type f -name "*.md*" -exec grep -l "draft: true" {} + 2>/dev/null || true)
-
-if [[ -z "$DRAFT_POSTS" ]]; then
-  info "No draft posts found to check."
-else
-  for post in $DRAFT_POSTS; do
-    # Extract slug from filename (e.g., src/data/post/test-draft.md -> test-draft)
-    slug=$(basename "$post" | sed 's/\.mdx\?$//')
-    
-    # Check if the slug exists in dist/
-    if find dist -name "${slug}" 2>/dev/null | grep -q .; then
-      fail "Draft post '$slug' found in dist/!"
-      ERRORS=$((ERRORS + 1))
-    elif find dist -name "${slug}.html" 2>/dev/null | grep -q .; then
-        fail "Draft post '$slug.html' found in dist/!"
-        ERRORS=$((ERRORS + 1))
-    fi
-  done
-  
-  if [[ $ERRORS -eq 0 ]]; then
-    pass "All draft posts excluded from dist/"
-  fi
+  fail "Astro type check failed"
+  ERRORS=$((ERRORS + 1))
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ $ERRORS -gt 0 ]]; then
-  echo -e "${RED}${BOLD}✗ $ERRORS check(s) failed. Fix errors before deploying.${RESET}"
-  echo -e "  Tip: run ${CYAN}npm run fix${RESET} to auto-fix formatting issues.\n"
+  echo -e "${RED}${BOLD}✗ $ERRORS check(s) failed in the theme engine.${RESET}"
   exit 1
 fi
 
-echo -e "${GREEN}${BOLD}✓ All checks passed!${RESET}\n"
+echo -e "${GREEN}${BOLD}✓ Theme engine checks passed!${RESET}\n"
 
 # ── Sync Code to GitHub ───────────────────────────────────────────────────────
-info "Pushing code to GitHub..."
-git push || warn "Git push failed, but proceeding to deploy..."
-
-# ── Deploy to Cloudflare ──────────────────────────────────────────────────────
-# Deploying to Cloudflare Pages (Direct Upload)
-# Ensure CLOUDFLARE_PROJECT_NAME is set in your environment
-PROJECT_NAME="${CLOUDFLARE_PROJECT_NAME:-your-project-name}"
-
-info "Deploying to Cloudflare Pages (Direct Upload) to assignment: $PROJECT_NAME..."
-npx -y wrangler pages deploy dist --project-name "$PROJECT_NAME"
-
-# ── 11. Sync Cloudflare Access ────────────────────────────────────────────────
-if [[ -f "infra/cloudflare-access.sh" ]]; then
-  info "Syncing Cloudflare Access policies..."
-  export CLOUDFLARE_PROJECT_NAME="$PROJECT_NAME"
-  bash infra/cloudflare-access.sh
-fi
-
-echo -e "\n${GREEN}${BOLD}✓ Deployed!${RESET}"
-echo -e "  ${CYAN}https://${PROJECT_NAME}.pages.dev${RESET}\n"
+info "Pushing theme code to GitHub..."
+git push || echo -e "${YELLOW}⚠ Git push failed or nothing to push.${RESET}"
