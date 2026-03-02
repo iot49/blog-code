@@ -29,57 +29,7 @@ if [[ -n "$(git status --porcelain)" ]]; then
   echo ""
 fi
 
-# ── 2. Prettier ───────────────────────────────────────────────────────────────
-info "Prettier (auto-formatting)..."
-npm run fix:prettier --silent
-pass "Prettier"
-
-# ── 3. ESLint ─────────────────────────────────────────────────────────────────
-info "ESLint..."
-if npm run check:eslint --silent 2>&1; then
-  pass "ESLint"
-else
-  fail "ESLint — run 'npm run fix:eslint' to auto-fix where possible"
-  exit 1
-fi
-
-# ── 4. Astro type check ───────────────────────────────────────────────────────
-info "Astro type check..."
-if npm run check:astro --silent 2>&1; then
-  pass "Astro type check"
-else
-  fail "Astro type check"
-  exit 1
-fi
-
-# ── 5. YAML frontmatter validation ────────────────────────────────────────────
-info "YAML frontmatter in posts..."
-YAML_ERRORS=0
-while IFS= read -r -d '' file; do
-  # Extract frontmatter between --- delimiters and validate with node
-  if ! node --input-type=module <<EOF 2>/dev/null
-import { readFileSync } from 'fs';
-import { load } from '${REPO_ROOT}/node_modules/js-yaml/dist/js-yaml.mjs';
-const content = readFileSync('${file}', 'utf8');
-const match = content.match(/^---\n([\s\S]*?)\n---/);
-if (match) load(match[1]);
-EOF
-  then
-    fail "Bad YAML frontmatter: $file"
-    YAML_ERRORS=$((YAML_ERRORS + 1))
-  fi
-done < <(find src/data/post -name "*.md" -o -name "*.mdx" | tr '\n' '\0')
-
-if [[ $YAML_ERRORS -eq 0 ]]; then
-  pass "YAML frontmatter"
-else
-  fail "$YAML_ERRORS YAML frontmatter errors found"
-  exit 1
-fi
-
-
-
-# ── 6. Sync Content from blog-content ─────────────────────────────────────────
+# ── 2. Sync Content from blog-content ─────────────────────────────────────────
 info "Syncing content..."
 BLOG_CONTENT_DIR="${BLOG_CONTENT_DIR:-../blog-content}"
 
@@ -98,17 +48,11 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   if [[ -d "$BLOG_CONTENT_DIR/src/assets/images" ]]; then
     # Sync to src/assets/images (for global assets)
     mkdir -p src/assets/images
-    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/images/" src/assets/images/
-    
-    # Sync to src/data/post/images (for colocated post images)
-    mkdir -p src/data/post/images
-    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/images/" src/data/post/images/
+    rsync -av --update --delete "$BLOG_CONTENT_DIR/src/assets/images/" src/assets/images/
   fi
-
-  # Sync favicons
   if [[ -d "$BLOG_CONTENT_DIR/src/assets/favicons" ]]; then
     mkdir -p src/assets/favicons
-    rsync -av --update "$BLOG_CONTENT_DIR/src/assets/favicons/" src/assets/favicons/
+    rsync -av --update --delete "$BLOG_CONTENT_DIR/src/assets/favicons/" src/assets/favicons/
   fi
   
   # Handle VSCode pasted images in posts
@@ -135,6 +79,54 @@ if [[ -d "$BLOG_CONTENT_DIR" ]]; then
   pass "Content synced from blog-content"
 else
   warn "Content dir $BLOG_CONTENT_DIR not found. Using local sample content."
+fi
+
+# ── 3. Prettier ───────────────────────────────────────────────────────────────
+info "Prettier (auto-formatting)..."
+npm run fix:prettier --silent
+pass "Prettier"
+
+# ── 4. ESLint ─────────────────────────────────────────────────────────────────
+info "ESLint..."
+if npm run check:eslint --silent 2>&1; then
+  pass "ESLint"
+else
+  fail "ESLint — run 'npm run fix:eslint' to auto-fix where possible"
+  exit 1
+fi
+
+# ── 5. Astro type check ───────────────────────────────────────────────────────
+info "Astro type check..."
+if npm run check:astro --silent 2>&1; then
+  pass "Astro type check"
+else
+  fail "Astro type check"
+  exit 1
+fi
+
+# ── 6. YAML frontmatter validation ────────────────────────────────────────────
+info "YAML frontmatter in posts..."
+YAML_ERRORS=0
+while IFS= read -r -d '' file; do
+  # Extract frontmatter between --- delimiters and validate with node
+  if ! node --input-type=module <<EOF 2>/dev/null
+import { readFileSync } from 'fs';
+import { load } from '${REPO_ROOT}/node_modules/js-yaml/dist/js-yaml.mjs';
+const content = readFileSync('${file}', 'utf8');
+const match = content.match(/^---\n([\s\S]*?)\n---/);
+if (match) load(match[1]);
+EOF
+  then
+    fail "Bad YAML frontmatter: $file"
+    YAML_ERRORS=$((YAML_ERRORS + 1))
+  fi
+done < <(find src/data/post -name "*.md" -o -name "*.mdx" | tr '\n' '\0')
+
+if [[ $YAML_ERRORS -eq 0 ]]; then
+  pass "YAML frontmatter"
+else
+  fail "$YAML_ERRORS YAML frontmatter errors found"
+  exit 1
 fi
 
 

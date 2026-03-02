@@ -40,7 +40,7 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
                 name: 'vite-plugin-astrowind-config',
                 resolveId(id) {
                   if (id === virtualModuleId) {
-                     return resolvedVirtualModuleId;
+                    return resolvedVirtualModuleId;
                   }
                 },
                 load(id) {
