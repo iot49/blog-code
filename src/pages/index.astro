@@ -1,4 +1,4 @@
 ---
-import { getPermalink } from '~/utils/permalinks';
-return Astro.redirect(getPermalink('blog', 'tag'));
+import { getBlogPermalink } from '~/utils/permalinks';
+return Astro.redirect(getBlogPermalink());
 ---
