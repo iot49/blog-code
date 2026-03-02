@@ -364,14 +364,14 @@ fi
      - Create/update one Access Policy per level in `access-list.yaml`: `/friends/*` → friends email list, etc.
      - `/auth/*` → "any authenticated user" policy.
      - `/public/*` → bypass policy (no auth required).
-   - Reads `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_ZONE_ID` from environment.
+   - Reads `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID` from environment.
 
 3. **[NEW] `docs/cloudflare-access.md`** (update existing)
    - Full CLI setup walkthrough.
    - Note the **BEWARE** from ARCHITECTURE.md: CF only protects paths listed in a policy; verify alternate access paths are blocked.
 
 4. **[MODIFY] `.env.example`**
-   - Add `CF_API_TOKEN=`, `CF_ACCOUNT_ID=`, `CF_ZONE_ID=`, `CLOUDFLARE_PROJECT_NAME=`.
+   - Add `CLOUDFLARE_API_TOKEN=`, `CLOUDFLARE_ACCOUNT_ID=`, `CLOUDFLARE_ZONE_ID=`, `CLOUDFLARE_PROJECT_NAME=`.
 
 ### Verification
 
@@ -380,8 +380,8 @@ fi
 DRY_RUN=1 ./infra/cloudflare-access.sh
 
 # After real run, verify via CF API:
-curl -s -H "Authorization: Bearer $CF_API_TOKEN" \
-  "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access/apps" \
+curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/access/apps" \
   | jq '.result[].name'
 ```
 

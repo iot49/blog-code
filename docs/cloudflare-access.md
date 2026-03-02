@@ -70,8 +70,9 @@ Instead of manual configuration, use the provided sync script. This script reads
 
 ```bash
 # 1. Set environment variables (or add to .env)
-export CF_API_TOKEN="..."
-export CF_ACCOUNT_ID="..."
+export CLOUDFLARE_API_TOKEN="..."
+export CLOUDFLARE_ACCOUNT_ID="..."
+export CLOUDFLARE_ZONE_ID="..."
 export DOMAIN="your-blog.com"
 
 # 2. Run the sync script

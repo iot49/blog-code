@@ -20,11 +20,8 @@ warn() { echo -e "${YELLOW}⚠${RESET} $1"; }
 
 # 1. Check Environment Variables
 info "Checking environment variables..."
-# Set fallbacks for deprecated names
-CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CF_API_TOKEN:-}}"
-CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-${CF_ACCOUNT_ID:-}}"
 
-for var in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID DOMAIN CLOUDFLARE_PROJECT_NAME; do
+for var in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ZONE_ID DOMAIN CLOUDFLARE_PROJECT_NAME; do
   if [[ -z "${!var:-}" ]]; then
     fail "Missing $var. Please set it in your environment or .env file."
     exit 1
@@ -65,7 +62,7 @@ fi
 info "Using Pages domain for wildcard: $PAGES_DOMAIN"
 info "Detected domains: $ALL_PROJECT_DOMAINS"
 
-CF_API_BASE="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/access"
+CLOUDFLARE_API_BASE="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/access"
 
 # Helper for API calls
 cf_api() {
@@ -76,16 +73,16 @@ cf_api() {
 
   local res
   if [[ -n "$data" ]]; then
-    res=$(curl -s -X "$method" "$CF_API_BASE$path" \
+    res=$(curl -s -X "$method" "$CLOUDFLARE_API_BASE$path" \
       -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       -H "Content-Type: application/json" \
       -d "$data")
   else
-    res=$(curl -s -X "$method" "$CF_API_BASE$path" \
+    res=$(curl -s -X "$method" "$CLOUDFLARE_API_BASE$path" \
       -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       -H "Content-Type: application/json")
   fi
-  echo "$res" > /tmp/cf_api_last_res.json
+  echo "$res" > /tmp/cloudflare_api_last_res.json
   echo "$res"
 }
 
@@ -174,8 +171,8 @@ sync_app() {
   if [[ -z "$APP_ID" ]]; then
     fail "Failed to manage Application for $LEVEL"
     # Check if this was an auth error
-    if grep -q "Authentication error" /tmp/cf_api_last_res.json; then
-      warn "Tip: Ensure your CF_API_TOKEN has 'Account > Access: Edit' permission."
+    if grep -q "Authentication error" /tmp/cloudflare_api_last_res.json; then
+      warn "Tip: Ensure your CLOUDFLARE_API_TOKEN has 'Account > Access: Edit' permission."
     fi
     return 1
   fi
