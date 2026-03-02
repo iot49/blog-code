@@ -1,18 +1,20 @@
 ---
-/**
- * Giscus Comments Component
- *
- * This component renders the Giscus comment widget.
- * It uses environment variables for configuration.
- */
+import { COMMENTS } from 'astrowind:config';
 
-const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO;
-const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
-const giscusCategory = import.meta.env.PUBLIC_GISCUS_CATEGORY;
-const giscusCategoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+const { isEnabled: isEnabledByConfig, giscus: giscusConfig } = COMMENTS;
 
-// Only enable if the repository is configured
-const isEnabled = !!giscusRepo;
+const giscusRepo = giscusConfig?.repo || import.meta.env.PUBLIC_GISCUS_REPO;
+const giscusRepoId = giscusConfig?.repoId || import.meta.env.PUBLIC_GISCUS_REPO_ID;
+const giscusCategory = giscusConfig?.category || import.meta.env.PUBLIC_GISCUS_CATEGORY;
+const giscusCategoryId = giscusConfig?.categoryId || import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+
+// Only enable if explicitly enabled in config OR if repo is provided in env
+const isEnabled = isEnabledByConfig || !!import.meta.env.PUBLIC_GISCUS_REPO;
+
+// Helper for mapping other giscus options
+const mapping = giscusConfig?.mapping || 'pathname';
+const theme = giscusConfig?.theme || 'preferred_color_scheme';
+const lang = giscusConfig?.lang || 'en';
 ---
 
 {
@@ -26,13 +28,13 @@ const isEnabled = !!giscusRepo;
         data-repo-id={giscusRepoId}
         data-category={giscusCategory}
         data-category-id={giscusCategoryId}
-        data-mapping="pathname"
+        data-mapping={mapping}
         data-strict="0"
         data-reactions-enabled="1"
         data-emit-metadata="0"
         data-input-position="bottom"
-        data-theme="preferred_color_scheme"
-        data-lang="en"
+        data-theme={theme}
+        data-lang={lang}
         data-loading="lazy"
         crossorigin="anonymous"
         async

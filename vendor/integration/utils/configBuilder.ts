@@ -11,7 +11,27 @@ export type Config = {
   };
   ui?: unknown;
   analytics?: unknown;
+  comments?: CommentsConfig;
 };
+
+export interface CommentsConfig {
+  isEnabled: boolean;
+  type: 'giscus' | 'none';
+  giscus?: {
+    repo: string;
+    repoId: string;
+    category: string;
+    categoryId: string;
+    mapping?: string;
+    strict?: string;
+    reactionsEnabled?: string;
+    emitMetadata?: string;
+    inputPosition?: 'top' | 'bottom';
+    theme?: string;
+    lang?: string;
+    loading?: 'lazy' | 'eager';
+  };
+}
 
 export interface SiteConfig {
   name: string;
@@ -197,6 +217,15 @@ const getAnalytics = (config: Config) => {
   return merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
 };
 
+const getComments = (config: Config) => {
+  const _default = {
+    isEnabled: false,
+    type: 'none',
+  };
+
+  return merge({}, _default, config?.comments ?? {}) as CommentsConfig;
+};
+
 export default (config: Config) => ({
   SITE: getSite(config),
   I18N: getI18N(config),
@@ -204,4 +233,5 @@ export default (config: Config) => ({
   APP_BLOG: getAppBlog(config),
   UI: getUI(config),
   ANALYTICS: getAnalytics(config),
+  COMMENTS: getComments(config),
 });
