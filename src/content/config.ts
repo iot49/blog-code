@@ -46,8 +46,8 @@ const metadataDefinition = () =>
     })
     .optional();
 
-// Resolve the content directory dynamically. 
-// If CONTENT_DIR is provided, use it. Otherwise, assume we're running from the project root (e.g. blog-content or a standalone setup).
+// Resolve the content directory dynamically.
+// If CONTENT_DIR is provided, use it. Otherwise, assume we're running from the project root (e.g. blog-content).
 const defaultContentDir = './src/data/post';
 // Using import.meta.env for Astro environment var access if defined, else fallback to default
 const baseDir = (import.meta.env && import.meta.env.CONTENT_DIR) || defaultContentDir;

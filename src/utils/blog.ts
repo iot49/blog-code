@@ -22,13 +22,7 @@ try {
   console.error('Error loading access-list.yaml', e);
 }
 
-const generatePermalink = async ({
-  slug,
-  accessLevel,
-}: {
-  slug: string;
-  accessLevel: string;
-}) => {
+const generatePermalink = async ({ slug, accessLevel }: { slug: string; accessLevel: string }) => {
   const permalink = `/${accessLevel}/${slug}`;
 
   return permalink

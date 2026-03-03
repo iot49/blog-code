@@ -14,8 +14,6 @@ import type { AstroIntegration } from 'astro';
 import astrowind from './vendor/integration';
 import blogThemeCore from './src/theme-integration';
 
-
-
 import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
 import remarkMath from 'remark-math';
 import { remarkAlert } from 'remark-github-blockquote-alert';

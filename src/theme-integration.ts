@@ -20,7 +20,7 @@ export default function blogThemeCore(): AstroIntegration {
         // Helper to recursively find all Astro/TS/JS pages in the theme and selectively inject them
         const injectPages = (dir: string) => {
           if (!fs.existsSync(dir)) return;
-          
+
           const entries = fs.readdirSync(dir, { withFileTypes: true });
           for (const entry of entries) {
             const res = path.resolve(dir, entry.name);
@@ -40,9 +40,11 @@ export default function blogThemeCore(): AstroIntegration {
               // e.g. If the theme is trying to inject `/about.astro`, check if `blog-content/src/pages/about.astro` exists.
               const relativeFilePath = res.replace(themePagesDir, '');
               const consumerOverridePath = path.join(consumerPagesDir, relativeFilePath);
-              
+
               if (fs.existsSync(consumerOverridePath)) {
-                console.log(`[blog-theme-core] Skipping injection for ${routePattern} because a local override exists at ${relativeFilePath}`);
+                console.log(
+                  `[blog-theme-core] Skipping injection for ${routePattern} because a local override exists at ${relativeFilePath}`
+                );
                 continue; // Skip injecting because the consumer owns this route
               }
 

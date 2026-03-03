@@ -6,7 +6,7 @@
 const { searchParams } = Astro.url;
 const raw = searchParams.get('redirect') || '/';
 // Prevent open redirect: only allow relative paths, reject absolute URLs and protocol-relative URLs
-const redirectTo = (raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/';
+const redirectTo = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
 ---
 
 <html>

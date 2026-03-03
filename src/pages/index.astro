@@ -6,9 +6,8 @@ import { fetchPosts } from '~/utils/blog';
 export const prerender = true;
 
 const posts = await fetchPosts();
-const filteredPosts = posts.filter(post => 
-  post.accessLevel === 'public' && 
-  post.tags?.some(tag => tag.slug === 'blog')
+const filteredPosts = posts.filter(
+  (post) => post.accessLevel === 'public' && post.tags?.some((tag) => tag.slug === 'blog')
 );
 
 const metadata = {
