@@ -1,4 +1,4 @@
-import { z, defineCollection } from 'astro:content';
+import { z, defineCollection, type ImageFunction } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const metadataDefinition = () =>
@@ -46,42 +46,33 @@ const metadataDefinition = () =>
     })
     .optional();
 
-// Resolve the content directory dynamically.
-// If CONTENT_DIR is provided, use it. Otherwise, assume we're running from the project root (e.g. blog-content).
+export const postSchema = ({ image }: { image: ImageFunction }) =>
+  z.object({
+    publishDate: z.date().optional(),
+    updateDate: z.date().optional(),
+    draft: z.boolean().default(true),
+
+    title: z.string(),
+    excerpt: z.string().optional(),
+    image: image().optional(),
+
+    category: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    author: z.string().default('Admin'),
+
+    accessLevel: z.string().default('private'),
+    pinned: z.boolean().default(false),
+    language: z.string().default('en'),
+
+    metadata: metadataDefinition(),
+  });
+
 const defaultContentDir = './src/data/post';
-// Using import.meta.env for Astro environment var access if defined, else fallback to default
-const baseDir = (import.meta.env && import.meta.env.CONTENT_DIR) || defaultContentDir;
+export const baseDir = (import.meta.env && import.meta.env.CONTENT_DIR) || defaultContentDir;
 
-const postCollection = defineCollection({
+export const postCollection = defineCollection({
   loader: glob({ pattern: ['**/*.md', '**/*.mdx'], base: baseDir }),
-  schema: ({ image }) =>
-    z.object({
-      publishDate: z.date().optional(),
-      updateDate: z.date().optional(),
-      draft: z.boolean().default(true), // Default to draft for security
-
-      title: z.string(),
-      excerpt: z.string().optional(),
-      image: image().optional(),
-
-      // Topic organization
-      topic: z.enum(['blog', 'modelrailroad', 'software']).default('blog'),
-
-      category: z.string().optional(),
-      tags: z.array(z.string()).default([]),
-      author: z.string().default('John Dummy'),
-
-      // Access control - default to most restrictive
-      accessLevel: z.string().default('private'),
-
-      // Pinned status
-      pinned: z.boolean().default(false),
-
-      // Language support
-      language: z.string().default('en'),
-
-      metadata: metadataDefinition(),
-    }),
+  schema: postSchema,
 });
 
 export const collections = {
