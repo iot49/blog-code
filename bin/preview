@@ -8,6 +8,10 @@ cd "$REPO_ROOT"
 BLOG_CONTENT_DIR="${BLOG_CONTENT_DIR:-../blog-content}"
 
 if [[ -d "$BLOG_CONTENT_DIR" ]]; then
+  if [[ -x "$BLOG_CONTENT_DIR/bin/clean-images" ]]; then
+    echo "🧹 Cleaning unused images in $BLOG_CONTENT_DIR..."
+    "$BLOG_CONTENT_DIR/bin/clean-images"
+  fi
   echo "Syncing content from $BLOG_CONTENT_DIR..."
   rsync -av --update --delete "$BLOG_CONTENT_DIR/src/data/post/" src/data/post/
   if [[ -f "$BLOG_CONTENT_DIR/src/config.yaml" ]]; then rsync -av "$BLOG_CONTENT_DIR/src/config.yaml" src/; fi
